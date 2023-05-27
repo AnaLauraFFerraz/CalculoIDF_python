@@ -1,5 +1,4 @@
 import json
-# import sys
 import os
 import pandas as pd
 from flask import jsonify
@@ -15,54 +14,34 @@ from ventechow import main as ventechow
 
 def load_data(csv_file_path):
     """Function to load the required data for further analysis."""
-
     script_dir = os.path.dirname(os.path.abspath(__file__))
-
     input_data = pd.read_csv(csv_file_path, sep=";", encoding='ISO 8859-1', skiprows=12,
                              decimal=",", usecols=["NivelConsistencia", "Data", "Maxima"], index_col=False)
-
     gb_test_file_path = os.path.join(script_dir, "csv", "Tabela_Teste_GB.csv")
     gb_test = pd.read_csv(gb_test_file_path, sep=",",
                           encoding='ISO 8859-1', decimal=",", index_col=False)
-
     yn_sigman_file_path = os.path.join(
         script_dir, "csv", "Tabela_YN_sigmaN.csv")
     table_yn_sigman = pd.read_csv(yn_sigman_file_path, sep=",", encoding='ISO 8859-1',
                                   decimal=",", usecols=["Size", "YN", "sigmaN"], index_col=False)
-
     return input_data, gb_test, table_yn_sigman
 
 
 def main(csv_file_path):
     """Main function to process the data, test for outliers, determine the distribution, 
     calculate the k coefficient, and calculate the Ven Te Chow parameters."""
-
     raw_df, gb_test, table_yn_sigman = load_data(csv_file_path)
-
     processed_data = process_data(raw_df)
-
     if processed_data.empty:
         insufficient_data = "Dados não são sufientes para completar a análise"
-        with open('output/idf_data.json', 'w', encoding='utf-8') as file:
-            json.dump(insufficient_data, file)
         return json.dumps(insufficient_data)
-
     no_outlier = teste_outlier(processed_data, gb_test)
-
     distribution_data, params, dist_r2 = distributions(
         no_outlier, table_yn_sigman)
-    # distribution_data.to_csv('distribution_data.csv', sep=',')
-
     disaggregation_data, time_interval = disaggregation_coef()
-
     k_coefficient_data = k_coefficient(params, dist_r2)
-
     output = ventechow(distribution_data, k_coefficient_data,
                        disaggregation_data, params, time_interval, dist_r2)
-
-    with open('output/idf_data.json', 'w', encoding='utf-8') as json_file:
-        json.dump(output, json_file)
-
     return output
 
 
@@ -87,48 +66,64 @@ def process_request(request):
     else:
         return jsonify(error="csv_file_url not provided"), 400
 
-    # Download the CSV file from Cloud Storage
+    # Download the CSV file from Firebase Cloud Storage
+    csv_file_path = download_csv_file(csv_file_url)
+
+    # Process the data
+    result = main(csv_file_path)
+
+    # Delete the CSV file
+    os.remove(csv_file_path)
+
+    return jsonify(result)
+
+
+
+def download_csv_file(csv_file_url):
+    """Download a file from Firebase Cloud Storage and return the local file path."""
+    # Parse the GCS URL
     bucket_name, blob_name = parse_gcs_url(csv_file_url)
-    csv_file_path = download_blob(bucket_name, blob_name)
 
-    # Process the CSV file
-    output = main(csv_file_path)
+    # Download the blob to a local file
+    file_path = '/tmp/' + blob_name
+    download_blob(bucket_name, blob_name, file_path)
 
-    # Return the output as a JSON response
-    return jsonify(output)
-
+    return file_path
 
 def parse_gcs_url(gcs_url):
-    """Parse a Google Cloud Storage URL into (bucket_name, blob_name)"""
+    """Parse a GCS URL into (bucket_name, blob_name)."""
     # Remove the 'gs://' prefix
     gcs_url = gcs_url[5:]
+
+    # Split the URL into bucket_name and blob_name
     bucket_name, blob_name = gcs_url.split('/', 1)
+
     return bucket_name, blob_name
 
-
-def download_blob(bucket_name, blob_name):
-    """Downloads a blob from the bucket."""
+def download_blob(bucket_name, blob_name, destination_file_name):
+    """Download a blob from a GCS bucket to a local file."""
+    # Create a Cloud Storage client
     storage_client = storage.Client()
+
+    # Get the bucket and blob
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(blob_name)
 
     # Download the blob to a local file
-    csv_file_path = "/tmp/" + blob_name
-    blob.download_to_filename(csv_file_path)
+    blob.download_to_filename(destination_file_name)
 
-    return csv_file_path
-
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Por favor, forneça o caminho do arquivo CSV como argumento")
-    else:
-        csv_file_path = sys.argv[1]
-        main(csv_file_path)
 
 # if __name__ == "__main__":
-#     cv = "CalculoIDF/python_scripts/csv/chuvas_C_01844000_CV.csv"
-#     pl = "CalculoIDF/python_scripts/csv/chuvas_C_01944009_PL.csv"
-#     ma = "CalculoIDF/python_scripts/csv/chuvas_C_02043032_MA.csv"
-#     csv_file_path = cv
-#     main(csv_file_path)
+#     class TestRequest:
+#         def __init__(self, json):
+#             self.json_data = json
+
+#         def get_json(self, silent):
+#             return self.json_data
+
+#     test_request = TestRequest({
+#         'csv_file_url': 'gs://my-bucket/my-file.csv',
+#     })
+
+#     print(process_request(test_request))
+
