@@ -77,8 +77,6 @@ def process_request(request):
 
     return jsonify(result)
 
-
-
 def download_csv_file(csv_file_url):
     """Download a file from Firebase Cloud Storage and return the local file path."""
     # Parse the GCS URL
@@ -111,19 +109,3 @@ def download_blob(bucket_name, blob_name, destination_file_name):
 
     # Download the blob to a local file
     blob.download_to_filename(destination_file_name)
-
-
-# if __name__ == "__main__":
-#     class TestRequest:
-#         def __init__(self, json):
-#             self.json_data = json
-
-#         def get_json(self, silent):
-#             return self.json_data
-
-#     test_request = TestRequest({
-#         'csv_file_url': 'gs://my-bucket/my-file.csv',
-#     })
-
-#     print(process_request(test_request))
-
