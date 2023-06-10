@@ -42,6 +42,7 @@ def main(csv_file_path):
     k_coefficient_data = k_coefficient(params, dist_r2)
     output = ventechow(distribution_data, k_coefficient_data,
                        disaggregation_data, params, time_interval, dist_r2)
+    print(output)
     return output
 
 
@@ -70,23 +71,47 @@ def process_request(request):
     csv_file_path = download_csv_file(csv_file_url)
 
     # Process the data
-    result = main(csv_file_path)
+    result = None
+    try:
+        result = main(csv_file_path)
+    except Exception as e:
+        print(f"Error processing data: {e}")
+        return jsonify(error="Error processing data"), 500
 
-    # Delete the CSV file
+    if not result:
+        return jsonify(error="No result from main function"), 500
+
+    # Delete the CSV file from the local machine
     os.remove(csv_file_path)
+
+    # Delete the CSV file from Firebase Storage
+    bucket_name, blob_name = parse_gcs_url(csv_file_url)
+    delete_blob(bucket_name, blob_name)
 
     return jsonify(result)
 
-def download_csv_file(csv_file_url):
-    """Download a file from Firebase Cloud Storage and return the local file path."""
-    # Parse the GCS URL
-    bucket_name, blob_name = parse_gcs_url(csv_file_url)
 
-    # Download the blob to a local file
-    file_path = '/tmp/' + blob_name
-    download_blob(bucket_name, blob_name, file_path)
+def download_csv_file(gcs_url):
+    """Download a CSV file from Firebase Cloud Storage to the local machine."""
+    if not gcs_url.startswith("gs://"):
+        raise ValueError("URL must start with 'gs://'")
 
-    return file_path
+    bucket_name, blob_name = parse_gcs_url(gcs_url)
+
+    # Create a Cloud Storage client
+    storage_client = storage.Client()
+
+    # Get the bucket
+    bucket = storage_client.bucket(bucket_name)
+
+    # Download the blob
+    blob = bucket.blob(blob_name)
+    csv_file_path = "/tmp/" + blob_name
+    blob.download_to_filename(csv_file_path)
+
+    return csv_file_path
+
+
 
 def parse_gcs_url(gcs_url):
     """Parse a GCS URL into (bucket_name, blob_name)."""
@@ -97,6 +122,7 @@ def parse_gcs_url(gcs_url):
     bucket_name, blob_name = gcs_url.split('/', 1)
 
     return bucket_name, blob_name
+
 
 def download_blob(bucket_name, blob_name, destination_file_name):
     """Download a blob from a GCS bucket to a local file."""
@@ -109,3 +135,24 @@ def download_blob(bucket_name, blob_name, destination_file_name):
 
     # Download the blob to a local file
     blob.download_to_filename(destination_file_name)
+
+
+def delete_blob(bucket_name, blob_name):
+    """Delete a blob from a GCS bucket."""
+    # Create a Cloud Storage client
+    storage_client = storage.Client()
+
+    # Get the bucket
+    bucket = storage_client.bucket(bucket_name)
+
+    # Delete the blob
+    blob = bucket.blob(blob_name)
+    blob.delete()
+
+
+# if __name__ == "__main__":
+#     cv = "CalculoIDF_python/src/csv/chuvas_C_01844000_CV.csv"
+#     pl = "CalculoIDF_python/src/csv/chuvas_C_01944009_PL.csv"
+#     ma = "CalculoIDF_python/src/csv/chuvas_C_02043032_MA.csv"
+#     csv_file_path = cv
+#     main(csv_file_path)

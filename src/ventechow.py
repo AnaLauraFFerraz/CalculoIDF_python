@@ -129,21 +129,6 @@ def add_relative_error(df):
     return df
 
 
-def find_P_max_dist(df, dist_r2):
-    if dist_r2["max_dist"] == 'r2_log_normal':
-        P_dist = "P_log_normal"
-    elif dist_r2["max_dist"] == 'r2_pearson':
-        P_dist = "P_pearson"
-    elif dist_r2["max_dist"] == 'r2_log_pearson':
-        P_dist = "P_log_pearson"
-    elif dist_r2["max_dist"] == 'r2_gumbel_theo':
-        P_dist = "P_gumbel_theoretical"
-    elif dist_r2["max_dist"] == 'r2_gumbel_finite':
-        P_dist = "P_gumbel_finite"
-
-    return P_dist
-
-
 def print_formatted_output(output):
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(output)
@@ -169,20 +154,13 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
     k_opt1, m_opt1, c_opt1, n_opt1 = optimize_parameters(transformed_df, 1)
     k_opt2, m_opt2, c_opt2, n_opt2 = optimize_parameters(transformed_df, 2)
 
-    print(
-        f"\ntd de 5 a 60 minutos: k1={k_opt1}, m1={m_opt1}, c1={c_opt1}, n1={n_opt1}")
-    print(
-        f"td acima de 60 minutos: k2={k_opt2}, m2={m_opt2}, c2={c_opt2}, n2={n_opt2}")
-
     mean_relative_errors, transformed_df = recalculate_dataframe(
         transformed_df, (k_opt1, m_opt1, c_opt1, n_opt1), (k_opt2, m_opt2, c_opt2, n_opt2))
-
-    P_dist = find_P_max_dist(distribution_data, dist_r2)
 
     output = {
         "graph_data": {
             "F": distribution_data["F"].tolist(),
-            "P_dist": P_dist
+            "P_dist": distribution_data["Pmax_anual"].tolist(),
         },
         "parameters": {
             "parameters_1": {
@@ -202,8 +180,10 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
         "sample_size_above_30_years": params['size'] >= 30
     }
 
-    print(transformed_df)
-    print(f"\nErro relativo médio: {mean_relative_errors}")
+    # print(f"\ntd 5 a 60 min: k1={k_opt1}, m1={m_opt1}, c1={c_opt1}, n1={n_opt1}")
+    # print(f"td > 60 min: k2={k_opt2}, m2={m_opt2}, c2={c_opt2}, n2={n_opt2}")
+
+    # print(f"\nErro relativo médio: {mean_relative_errors}")
     # print_formatted_output(output)
     # transformed_df.to_csv('transformed_df.csv', sep=',')
 
