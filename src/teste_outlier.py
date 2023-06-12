@@ -1,4 +1,5 @@
 import numpy as np
+from gb_test import gb_test_table
 
 
 def calculate_statistics(df):
@@ -33,8 +34,10 @@ def calc_critical_values(gb_test, sample_size, ln_p_mean, ln_p_std):
         tuple: Returns a tuple containing t_crit_10, x_h, x_l.
     """
 
-    t_crit_10 = gb_test.loc[gb_test['Number of observations']
-                            == sample_size, 'Upper 10% Significance Level'].values[0]
+    # t_crit_10 = gb_test.loc[gb_test['Number of observations']
+    #                         == sample_size, 'Upper 10% Significance Level'].values[0]
+    t_crit_10 = gb_test[sample_size]
+    print(t_crit_10)
 
     k_n_10 = -3.62201 + 6.28446*(sample_size**0.25) - 2.49835*(
         sample_size**0.5) + 0.491436*(sample_size**0.75) - 0.037911*sample_size
@@ -92,7 +95,7 @@ def remove_outliers(df, p_mean, p_std, t_crit_10, x_h, x_l):
     return df
 
 
-def main(processed_data, gb_test):
+def main(processed_data):
     """
     Main function to calculate statistics, calculate critical values, and remove outliers.
     Args:
@@ -104,6 +107,8 @@ def main(processed_data, gb_test):
 
     sample_size, p_mean, ln_p_mean, p_std, ln_p_std = calculate_statistics(
         processed_data)
+
+    gb_test = gb_test_table()
 
     t_crit_10, x_h, x_l = calc_critical_values(
         gb_test, sample_size, ln_p_mean, ln_p_std)

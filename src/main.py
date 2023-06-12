@@ -4,6 +4,7 @@ import pandas as pd
 from flask import jsonify
 from google.cloud import storage
 
+from yn_sigman import yn_sigman
 from process_data import main as process_data
 from teste_outlier import main as teste_outlier
 from distributions import main as distributions
@@ -17,27 +18,22 @@ def load_data(csv_file_path):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     input_data = pd.read_csv(csv_file_path, sep=";", encoding='ISO 8859-1', skiprows=12,
                              decimal=",", usecols=["NivelConsistencia", "Data", "Maxima"], index_col=False)
-    gb_test_file_path = os.path.join(script_dir, "csv", "Tabela_Teste_GB.csv")
-    gb_test = pd.read_csv(gb_test_file_path, sep=",",
-                          encoding='ISO 8859-1', decimal=",", index_col=False)
-    yn_sigman_file_path = os.path.join(
-        script_dir, "csv", "Tabela_YN_sigmaN.csv")
-    table_yn_sigman = pd.read_csv(yn_sigman_file_path, sep=",", encoding='ISO 8859-1',
-                                  decimal=",", usecols=["Size", "YN", "sigmaN"], index_col=False)
-    return input_data, gb_test, table_yn_sigman
+    return input_data
 
 
 def main(csv_file_path):
     """Main function to process the data, test for outliers, determine the distribution, 
     calculate the k coefficient, and calculate the Ven Te Chow parameters."""
-    raw_df, gb_test, table_yn_sigman = load_data(csv_file_path)
+    raw_df = load_data(csv_file_path)
+    
     processed_data = process_data(raw_df)
     if processed_data.empty:
         insufficient_data = "Dados não são sufientes para completar a análise"
         return json.dumps(insufficient_data)
-    no_outlier = teste_outlier(processed_data, gb_test)
+    no_outlier = teste_outlier(processed_data)
+    yn_table, sigman_table = yn_sigman()
     distribution_data, params, dist_r2 = distributions(
-        no_outlier, table_yn_sigman)
+        no_outlier, yn_table, sigman_table)
     disaggregation_data, time_interval = disaggregation_coef()
     k_coefficient_data = k_coefficient(params, dist_r2)
     output = ventechow(distribution_data, k_coefficient_data,
