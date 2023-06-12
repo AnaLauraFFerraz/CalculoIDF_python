@@ -33,12 +33,12 @@ def params_calculation(df, sigmaN, yn, sample_size):
     return params
 
 
-def yn_sigman_calculation(df, sample_size):
+def yn_sigman_calculation(yn_table, sigman_table, sample_size):
     """Function to get 'sigmaN' and 'YN' values from the dataframe based on the sample size."""
 
-    sigmaN = df.loc[df['Size'] == sample_size, 'sigmaN'].values[0]
-    yn = df.loc[df['Size'] == sample_size, 'YN'].values[0]
-    return sigmaN, yn
+    yn = yn_table[sample_size]
+    sigman = sigman_table[sample_size]
+    return sigman, yn
 
 
 def dist_log_normal(df, params):
@@ -159,12 +159,12 @@ def dist_calculations(no_oulier_data, sigmaN, yn, sample_size):
     return no_oulier_data, params, dist_r2
 
 
-def main(no_oulier_data, table_yn_sigman):
+def main(no_oulier_data, yn_table, sigman_table):
     """Main function to perform various calculations."""
 
     sample_size = len(no_oulier_data)
 
-    sigmaN, yn = yn_sigman_calculation(table_yn_sigman, sample_size)
+    yn, sigmaN = yn_sigman_calculation(yn_table, sigman_table, sample_size)
 
     no_oulier_data, params, dist_r2 = dist_calculations(
         no_oulier_data, sigmaN, yn, sample_size)
