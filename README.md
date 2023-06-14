@@ -1,41 +1,39 @@
-# IDF Calculations
+# Cálculo IDF - Python
 
-This repository contains the Python code for the IDF (Intensity-Duration-Frequency) calculations used in the IDF Calculation project.
+Este repositório contém o código Python para calcular a Intensidade-Duração-Frequência (IDF) a partir de dados de chuva. O código lê um arquivo CSV com dados de chuva, processa os dados e calcula a IDF.
 
-## Project Structure
+## Contexto
 
-The project is organized as follows:
+A Intensidade-Duração-Frequência (IDF) é uma medida importante em hidrologia e é usada para planejar e projetar infraestruturas de drenagem. Este projeto visa fornecer uma ferramenta para calcular a IDF a partir de dados de chuva.
 
-- `src/`: This directory contains the Python script for the IDF calculations.
-- `requirements.txt`: This file lists the Python dependencies required to run the script.
+## Funcionalidades
 
-## How to Run
+- Ler um arquivo CSV com dados de chuva.
+- Processar os dados para remover outliers e calcular a média mensal.
+- Calcular a IDF usando a fórmula de Ven Te Chow.
 
-1. Clone this repository to your local machine.
-2. Install the required Python dependencies using pip:
+## Tecnologias Utilizadas
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+- Python para a implementação do código.
+- Pandas para a manipulação de dados.
+- Numpy para cálculos numéricos.
 
-3. Run the script in the `src/` directory:
+## Como Usar
 
-    ```bash
-    python src/main.py
-    ```
+1. Clone este repositório para a sua máquina local.
+2. Instale as dependências do projeto com o comando `pip install -r requirements.txt`.
+3. Execute o código com o comando `python src/main.py`.
 
-## Dependencies
+## Estrutura do Projeto
 
-This project uses the following Python libraries:
+- `src/main.py`: Este é o arquivo principal do projeto. Ele lê o arquivo CSV, processa os dados e calcula a IDF.
+- `src/process_data.py`: Este arquivo contém a função para processar os dados do arquivo CSV.
+- `src/yn_sigman.py`: Este arquivo contém um dicionário que mapeia valores de 'n' para 'yn_sigman'.
 
-- pandas
-- numpy
-- scipy
+## Contribuindo
 
-## Contributing
+Contribuições são sempre bem-vindas! Sinta-se à vontade para abrir uma issue ou fazer um pull request.
 
-Contributions to this project are welcome. Please create a new branch for your feature or bug fix, and create a pull request for review.
+## Licença
 
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for more details.
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
