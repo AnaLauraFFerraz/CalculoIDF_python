@@ -159,7 +159,7 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
 
     output = {
         "graph_data": {
-            "F": distribution_data["F"].tolist(),
+            "F": (100*distribution_data["F"]).tolist(),
             "P_dist": distribution_data["Pmax_anual"].tolist(),
         },
         "parameters": {
