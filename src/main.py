@@ -19,6 +19,13 @@ def load_data(csv_file_path):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         input_data = pd.read_csv(csv_file_path, sep=";", encoding='ISO 8859-1', skiprows=12,
                              decimal=",", usecols=["NivelConsistencia", "Data", "Maxima"], index_col=False)
+        
+        # Check if the necessary columns are present
+        required_columns = ["NivelConsistencia", "Data", "Maxima"]
+        if not all(column in input_data.columns for column in required_columns):
+            print("CSV file does not have the required columns")
+            return None
+        
         return input_data
     except Exception as e:
         print(f"Error reading CSV file: {e}")
