@@ -37,7 +37,6 @@ def calc_critical_values(gb_test, sample_size, ln_p_mean, ln_p_std):
     # t_crit_10 = gb_test.loc[gb_test['Number of observations']
     #                         == sample_size, 'Upper 10% Significance Level'].values[0]
     t_crit_10 = gb_test[sample_size]
-    print(t_crit_10)
 
     k_n_10 = -3.62201 + 6.28446*(sample_size**0.25) - 2.49835*(
         sample_size**0.5) + 0.491436*(sample_size**0.75) - 0.037911*sample_size

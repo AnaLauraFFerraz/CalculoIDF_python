@@ -15,17 +15,23 @@ from ventechow import main as ventechow
 
 def load_data(csv_file_path):
     """Function to load the required data for further analysis."""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    input_data = pd.read_csv(csv_file_path, sep=";", encoding='ISO 8859-1', skiprows=12,
+    try:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        input_data = pd.read_csv(csv_file_path, sep=";", encoding='ISO 8859-1', skiprows=12,
                              decimal=",", usecols=["NivelConsistencia", "Data", "Maxima"], index_col=False)
-    return input_data
-
+        return input_data
+    except Exception as e:
+        print(f"Error reading CSV file: {e}")
+        return None
 
 def main(csv_file_path):
     """Main function to process the data, test for outliers, determine the distribution, 
     calculate the k coefficient, and calculate the Ven Te Chow parameters."""
     raw_df = load_data(csv_file_path)
-    
+    if raw_df is None:
+        print("Error loading data")
+        error_loading_data = "Erro ao carregar o arquivo"
+        return json.dumps(error_loading_data)
     processed_data = process_data(raw_df)
     if processed_data.empty:
         insufficient_data = "Dados não são sufientes para completar a análise"
@@ -38,7 +44,6 @@ def main(csv_file_path):
     k_coefficient_data = k_coefficient(params, dist_r2)
     output = ventechow(distribution_data, k_coefficient_data,
                        disaggregation_data, params, time_interval, dist_r2)
-    print(output)
     return output
 
 

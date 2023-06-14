@@ -76,7 +76,6 @@ def merge_and_fill_data(consistent_data, raw_data):
     # Filter DataFrames until last date
     consistent_data = consistent_data.loc[consistent_data['Data'] <= last_date]
     raw_data = raw_data.loc[raw_data['Data'] <= last_date]
-    # print("\nconsistent_data: ", raw_data)
 
     merged_df = pd.merge(consistent_data, raw_data,
                          on="Data", how="left", suffixes=('', '_y'))
@@ -172,6 +171,5 @@ def main(raw_df):
         return hydrological_year_data
 
     # hydrological_year_data.to_csv('hydrological_year_data.csv', sep=',')
-    # print("\hydrological_year_data\n", hydrological_year_data)
 
     return hydrological_year_data
