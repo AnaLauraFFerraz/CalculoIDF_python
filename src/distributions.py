@@ -1,6 +1,14 @@
 import numpy as np
 from scipy.stats import norm, stats, gamma
 
+def exceedence_calculation(df, sample_size):
+    df["F"] = (df.index + 1) / (sample_size + 1)
+    df["F"] = df["F"].round(4)
+    df["one_minus_F"] = 1 - df["F"]
+    df["P_log"] = np.log10(df["Pmax_anual"])
+
+    return df
+
 
 def params_calculation(df, sigmaN, yn, sample_size):
     """Calculates and returns a set of parameters derived from the input dataframe."""
@@ -44,6 +52,7 @@ def yn_sigman_calculation(yn_table, sigman_table, sample_size):
 def dist_log_normal(df, params):
     """Function to calculate r2 for the log-normal distribution."""
 
+    df["KN"] = norm.ppf(1 - df["F"])
     df["WTr"] = params["meanw"] + params["stdw"] * df["KN"]
     df["P_log_normal"] = np.power(10, df['WTr'])
 
@@ -119,16 +128,8 @@ def dist_gumbel_finite(df, params):
     return r2_gumbel_finite
 
 
-def dist_calculations(no_oulier_data, sigmaN, yn, sample_size):
+def dist_calculations(no_oulier_data, sigmaN, yn, sample_size, params):
     """Function to perform various distribution calculations."""
-
-    no_oulier_data["F"] = (no_oulier_data.index + 1) / (sample_size + 1)
-    no_oulier_data["F"] = no_oulier_data["F"].round(4)
-    no_oulier_data["one_minus_F"] = 1 - no_oulier_data["F"]
-    no_oulier_data["KN"] = norm.ppf(1 - no_oulier_data["F"])
-    no_oulier_data["P_log"] = np.log10(no_oulier_data["Pmax_anual"])
-
-    params = params_calculation(no_oulier_data, sigmaN, yn, sample_size)
 
     r2_log_normal = dist_log_normal(no_oulier_data, params)
 
@@ -148,6 +149,8 @@ def dist_calculations(no_oulier_data, sigmaN, yn, sample_size):
         "r2_gumbel_finite": r2_gumbel_finite
     }
 
+    print(distributions)
+
     max_dist = max(distributions, key=distributions.get)
     max_r2 = distributions[max_dist]
     # max_dist = "r2_pearson"
@@ -156,7 +159,7 @@ def dist_calculations(no_oulier_data, sigmaN, yn, sample_size):
     dist_r2 = {"max_dist": max_dist,
                "max_value_r2": max_r2}
 
-    return no_oulier_data, params, dist_r2
+    return no_oulier_data, dist_r2
 
 
 def main(no_oulier_data, yn_table, sigman_table):
@@ -164,13 +167,17 @@ def main(no_oulier_data, yn_table, sigman_table):
 
     sample_size = len(no_oulier_data)
 
+    distribuitions_df = exceedence_calculation(no_oulier_data, sample_size)
+
     yn, sigmaN = yn_sigman_calculation(yn_table, sigman_table, sample_size)
 
-    no_oulier_data, params, dist_r2 = dist_calculations(
-        no_oulier_data, sigmaN, yn, sample_size)
+    params = params_calculation(distribuitions_df, sigmaN, yn, sample_size)
 
+    distributions_data, dist_r2 = dist_calculations(
+        distribuitions_df, sigmaN, yn, sample_size, params)
+    
+    distributions_data.to_csv('transformed_df.csv', sep=',')
     # print(params)
-    # print(distributions)
     # print("\ndist_r2 ", dist_r2)
 
-    return no_oulier_data, params, dist_r2
+    return distributions_data, params, dist_r2
