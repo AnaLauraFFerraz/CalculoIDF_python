@@ -1,8 +1,8 @@
-import json
 import os
+import json
 import pandas as pd
 from flask import jsonify
-from google.cloud import storage
+from gcs_utils import download_csv_file, delete_blob
 
 from yn_sigman import yn_sigman
 from process_data import main as process_data
@@ -18,18 +18,25 @@ def load_data(csv_file_path):
     try:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         input_data = pd.read_csv(csv_file_path, sep=";", encoding='ISO 8859-1', skiprows=12,
-                             decimal=",", usecols=["NivelConsistencia", "Data", "Maxima"], index_col=False)
+                                 decimal=",", usecols=["NivelConsistencia", "Data", "Maxima"], index_col=False)
         
         # Check if the necessary columns are present
         required_columns = ["NivelConsistencia", "Data", "Maxima"]
         if not all(column in input_data.columns for column in required_columns):
-            print("CSV file does not have the required columns")
+            print(f"CSV file {csv_file_path} does not have the required columns")
             return None
         
         return input_data
-    except Exception as e:
-        print(f"Error reading CSV file: {e}")
+    except FileNotFoundError:
+        print(f"File {csv_file_path} not found")
         return None
+    except pd.errors.ParserError:
+        print(f"Error parsing CSV file {csv_file_path}")
+        return None
+    except Exception as e:
+        print(f"Unexpected error reading CSV file {csv_file_path}: {e}")
+        return None
+
 
 def main(csv_file_path):
     """Main function to process the data, test for outliers, determine the distribution, 
@@ -93,69 +100,9 @@ def process_request(request):
     os.remove(csv_file_path)
 
     # Delete the CSV file from Firebase Storage
-    bucket_name, blob_name = parse_gcs_url(csv_file_url)
-    delete_blob(bucket_name, blob_name)
+    delete_blob(csv_file_url)
 
     return jsonify(result)
-
-
-def download_csv_file(gcs_url):
-    """Download a CSV file from Firebase Cloud Storage to the local machine."""
-    if not gcs_url.startswith("gs://"):
-        raise ValueError("URL must start with 'gs://'")
-
-    bucket_name, blob_name = parse_gcs_url(gcs_url)
-
-    # Create a Cloud Storage client
-    storage_client = storage.Client()
-
-    # Get the bucket
-    bucket = storage_client.bucket(bucket_name)
-
-    # Download the blob
-    blob = bucket.blob(blob_name)
-    csv_file_path = "/tmp/" + blob_name
-    blob.download_to_filename(csv_file_path)
-
-    return csv_file_path
-
-
-
-def parse_gcs_url(gcs_url):
-    """Parse a GCS URL into (bucket_name, blob_name)."""
-    # Remove the 'gs://' prefix
-    gcs_url = gcs_url[5:]
-
-    # Split the URL into bucket_name and blob_name
-    bucket_name, blob_name = gcs_url.split('/', 1)
-
-    return bucket_name, blob_name
-
-
-def download_blob(bucket_name, blob_name, destination_file_name):
-    """Download a blob from a GCS bucket to a local file."""
-    # Create a Cloud Storage client
-    storage_client = storage.Client()
-
-    # Get the bucket and blob
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(blob_name)
-
-    # Download the blob to a local file
-    blob.download_to_filename(destination_file_name)
-
-
-def delete_blob(bucket_name, blob_name):
-    """Delete a blob from a GCS bucket."""
-    # Create a Cloud Storage client
-    storage_client = storage.Client()
-
-    # Get the bucket
-    bucket = storage_client.bucket(bucket_name)
-
-    # Delete the blob
-    blob = bucket.blob(blob_name)
-    blob.delete()
 
 
 # if __name__ == "__main__":
