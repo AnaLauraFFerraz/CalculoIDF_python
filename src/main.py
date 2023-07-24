@@ -6,7 +6,7 @@ from gcs_utils import download_csv_file, delete_blob
 
 from yn_sigman import yn_sigman
 from process_data import main as process_data
-from teste_outlier import main as teste_outlier
+from outlier_test import main as outlier_test
 from distributions import main as distributions
 from k_coefficient import main as k_coefficient
 from disaggregation_coef import disaggregation_coef
@@ -52,7 +52,7 @@ def main(csv_file_path):
         insufficient_data = "Dados não são sufientes para completar a análise"
         return json.dumps(insufficient_data)
     
-    no_outlier = teste_outlier(processed_data)
+    no_outlier = outlier_test(processed_data)
 
     yn_table, sigman_table = yn_sigman()
 
