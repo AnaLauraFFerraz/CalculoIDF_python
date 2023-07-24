@@ -46,16 +46,22 @@ def main(csv_file_path):
         print("Error loading data")
         error_loading_data = "Erro ao carregar o arquivo"
         return json.dumps(error_loading_data)
+    
     processed_data = process_data(raw_df)
     if processed_data.empty:
         insufficient_data = "Dados não são sufientes para completar a análise"
         return json.dumps(insufficient_data)
+    
     no_outlier = teste_outlier(processed_data)
+
     yn_table, sigman_table = yn_sigman()
+
     distribution_data, params, dist_r2 = distributions(
         no_outlier, yn_table, sigman_table)
+    
     disaggregation_data, time_interval = disaggregation_coef()
     k_coefficient_data = k_coefficient(params, dist_r2)
+
     output = ventechow(distribution_data, k_coefficient_data,
                        disaggregation_data, params, time_interval, dist_r2)
     return output
