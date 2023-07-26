@@ -4,12 +4,7 @@ from scipy.stats import norm, gamma
 
 
 def k_coeficient_calculation():
-    """
-    Calculate the k coefficient values based on the annual exceedance probabilities.
-    Returns:
-        DataFrame: DataFrame with the calculated k coefficient values.
-    """
-
+    """Calculate the k coefficient values based on the annual exceedance probabilities."""
     k_coefficient = pd.DataFrame()
     k_coefficient["Tr_anos"] = [2, 5, 10, 20, 30, 50, 75, 100]
     k_coefficient["exceedance"] = 1 / k_coefficient["Tr_anos"]
@@ -33,7 +28,6 @@ def k_dist_pearson_calc(k_coefficient, params):
 
     k_coefficient["k"] = (params["g"] / 2) * \
         (k_coefficient["YTR"] - params["alpha"])
-
     return k_coefficient.round(4)
 
 
@@ -45,7 +39,6 @@ def k_dist_log_pearson_calc(k_coefficient, params):
 
     k_coefficient["k"] = (params["gw"] / 2) * \
         (k_coefficient["YTRw"] - params["alphaw"])
-
     return k_coefficient.round(4)
 
 
@@ -63,7 +56,6 @@ def k_dist_gumbel_finite_calc(k_coefficient, params):
     k_coefficient["y"] = -np.log(-np.log(k_coefficient["no_exceedance"]))
     k_coefficient["k"] = (
         k_coefficient["y"] - params["yn"]) / params["sigman"]
-
     return k_coefficient.round(4)
 
 
@@ -82,5 +74,7 @@ def main(params, dist_r2):
         k = k_dist_gumbel_theoretical_calc(k_coefficient)
     elif dist_r2["max_dist"] == 'r2_gumbel_finite':
         k = k_dist_gumbel_finite_calc(k_coefficient, params)
-
+    else:
+        raise ValueError(f"Invalid distribution type: {dist_r2['max_dist']}")
+    
     return k
