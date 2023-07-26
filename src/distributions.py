@@ -1,18 +1,18 @@
 import numpy as np
 from scipy.stats import norm, stats, gamma
 
+
 def exceedence_calculation(df, sample_size):
+    """Calculate exceedence for the given dataframe."""
     df["F"] = (df.index + 1) / (sample_size + 1)
     df["F"] = df["F"].round(4)
     df["one_minus_F"] = 1 - df["F"]
     df["P_log"] = np.log10(df["Pmax_anual"])
-
     return df
 
 
 def params_calculation(df, sigmaN, yn, sample_size):
-    """Calculates and returns a set of parameters derived from the input dataframe."""
-
+    """Calculate parameters for the given dataframe."""
     mean = df["Pmax_anual"].mean()
     std_dev = df["Pmax_anual"].std()
     meanw = df["P_log"].mean()
@@ -42,8 +42,8 @@ def params_calculation(df, sigmaN, yn, sample_size):
 
 
 def yn_sigman_calculation(yn_table, sigman_table, sample_size):
-    """Function to get 'sigmaN' and 'YN' values from the dataframe based on the sample size."""
-
+    """Function to get 'sigmaN' and 'YN' values from
+    the dataframe based on the sample size."""
     yn = yn_table[sample_size]
     sigman = sigman_table[sample_size]
     return sigman, yn
@@ -51,7 +51,6 @@ def yn_sigman_calculation(yn_table, sigman_table, sample_size):
 
 def dist_log_normal(df, params):
     """Function to calculate r2 for the log-normal distribution."""
-
     df["KN"] = norm.ppf(1 - df["F"])
     df["WTr"] = params["meanw"] + params["stdw"] * df["KN"]
     df["P_log_normal"] = np.power(10, df['WTr'])
@@ -64,7 +63,6 @@ def dist_log_normal(df, params):
 
 def dist_pearson(df, params):
     """Function to calculate r2 for the Pearson distribution."""
-
     alpha = params["alpha"]
     # if params["gw"] > 0:
     #     alpha = params["alphaw"]
@@ -128,7 +126,7 @@ def dist_gumbel_finite(df, params):
     return r2_gumbel_finite
 
 
-def dist_calculations(no_oulier_data, sigmaN, yn, sample_size, params):
+def dist_calculations(no_oulier_data, params):
     """Function to perform various distribution calculations."""
 
     r2_log_normal = dist_log_normal(no_oulier_data, params)
@@ -148,8 +146,7 @@ def dist_calculations(no_oulier_data, sigmaN, yn, sample_size, params):
         "r2_gumbel_theo": r2_gumbel_theo,
         "r2_gumbel_finite": r2_gumbel_finite
     }
-
-    print(distributions)
+    # print(distributions)
 
     max_dist = max(distributions, key=distributions.get)
     max_r2 = distributions[max_dist]
@@ -174,9 +171,9 @@ def main(no_oulier_data, yn_table, sigman_table):
     params = params_calculation(distribuitions_df, sigmaN, yn, sample_size)
 
     distributions_data, dist_r2 = dist_calculations(
-        distribuitions_df, sigmaN, yn, sample_size, params)
-    
-    distributions_data.to_csv('transformed_df.csv', sep=',')
+        distribuitions_df, params)
+
+    # distributions_data.to_csv('transformed_df.csv', sep=',')
     # print(params)
     # print("\ndist_r2 ", dist_r2)
 
