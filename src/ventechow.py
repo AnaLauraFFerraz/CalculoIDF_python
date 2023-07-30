@@ -123,6 +123,22 @@ def add_relative_error(df):
     return df
 
 
+def handle_dist_name(dist_r2):
+    if dist_r2["max_dist"] == 'r2_log_normal':
+        chosen_dist = "log-normal"
+    elif dist_r2["max_dist"] == 'r2_pearson':
+        chosen_dist = "Pearson tipo III"
+    elif dist_r2["max_dist"] == 'r2_log_pearson':
+        chosen_dist = "log-Pearson tipo III"
+    elif dist_r2["max_dist"] == 'r2_gumbel_theo':
+        chosen_dist = "Gumbel Teórica"
+    elif dist_r2["max_dist"] == 'r2_gumbel_finite':
+        chosen_dist = "Gumbel Finita"
+    else:
+        raise ValueError(f"Invalid distribution type: {dist_r2['max_dist']}")
+    
+    return chosen_dist
+
 def main(distribution_data, k_coefficient_data, disaggregation_data, params, time_interval, dist_r2):
     """Main function to calculate optimal parameters and recalculate the DataFrame."""
     print(dist_r2["max_dist"])
@@ -146,6 +162,8 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
 
     mean_relative_errors, transformed_df = recalculate_dataframe(
         transformed_df, (k_opt1, m_opt1, c_opt1, n_opt1), (k_opt2, m_opt2, c_opt2, n_opt2))
+    
+    chosen_dist = handle_dist_name(dist_r2)
 
     output = {
         "graph_data": {
@@ -168,7 +186,7 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
         },
         "mean_relative_errors": mean_relative_errors,
         "sample_size_above_30_years": params['size'] >= 30,
-        "dist": dist_r2["max_dist"]
+        "dist": chosen_dist
     }
 
     # print(f"\ntd 5 a 60 min: k1={k_opt1}, m1={m_opt1}, c1={c_opt1}, n1={n_opt1}")
