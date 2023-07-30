@@ -150,7 +150,7 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
     output = {
         "graph_data": {
             "F": (100*distribution_data["F"]).tolist(),
-            "P_dist": distribution_data["Pmax_anual"].tolist(),
+            "P_dist": distribution_data["Pmax_anual"].tolist()[::-1],
         },
         "parameters": {
             "parameters_1": {
@@ -167,7 +167,8 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
             }
         },
         "mean_relative_errors": mean_relative_errors,
-        "sample_size_above_30_years": params['size'] >= 30
+        "sample_size_above_30_years": params['size'] >= 30,
+        "dist": dist_r2["max_dist"]
     }
 
     # print(f"\ntd 5 a 60 min: k1={k_opt1}, m1={m_opt1}, c1={c_opt1}, n1={n_opt1}")
