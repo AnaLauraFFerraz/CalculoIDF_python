@@ -64,10 +64,8 @@ def dist_log_normal(df, params):
 def dist_pearson(df, params):
     """Function to calculate r2 for the Pearson distribution."""
     alpha = params["alpha"]
-    # if params["gw"] > 0:
-    #     alpha = params["alphaw"]
 
-    df['YTR'] = np.where(alpha > 0, gamma.ppf(df["one_minus_F"],
+    df['YTR'] = np.where(params["g"] > 0, gamma.ppf(df["one_minus_F"],
                          alpha, scale=1), gamma.ppf(df["F"], alpha, scale=1))
 
     df["KP"] = (params["g"]/2) * (df['YTR'] - alpha)
@@ -83,7 +81,7 @@ def dist_log_pearson(df, params):
     """Function to calculate r2 for the log-Pearson distribution."""
     alphaw = params["alphaw"]
 
-    df['YTRw'] = np.where(alphaw > 0, gamma.ppf(df["one_minus_F"],
+    df['YTRw'] = np.where(params["gw"] > 0, gamma.ppf(df["one_minus_F"],
                                                 alphaw, scale=1), gamma.ppf(df["F"], alphaw, scale=1))
 
     df["KL_P"] = (params["gw"]/2)*(df['YTRw']-params["alphaw"])
@@ -114,7 +112,6 @@ def dist_gumbel_theoretical(df, params):
 
 def dist_gumbel_finite(df, params):
     """Function to calculate r2 for the finite Gumbel distribution."""
-
     df["KG_F"] = (df["y"] - params["yn"]) / params["sigman"]
     df["P_gumbel_finite"] = params["mean"] + params["std_dev"] * df["KG_F"]
 
@@ -146,7 +143,6 @@ def dist_calculations(no_oulier_data, params):
         "r2_gumbel_theo": r2_gumbel_theo,
         "r2_gumbel_finite": r2_gumbel_finite
     }
-    # print(distributions)
 
     max_dist = max(distributions, key=distributions.get)
     max_r2 = distributions[max_dist]
@@ -172,9 +168,5 @@ def main(no_oulier_data, yn_table, sigman_table):
 
     distributions_data, dist_r2 = dist_calculations(
         distribuitions_df, params)
-
-    # distributions_data.to_csv('transformed_df.csv', sep=',')
-    # print(params)
-    # print("\ndist_r2 ", dist_r2)
 
     return distributions_data, params, dist_r2
