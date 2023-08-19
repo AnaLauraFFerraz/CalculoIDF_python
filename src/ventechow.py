@@ -15,8 +15,8 @@ def rain_intensity_calculations(k_coefficient_data, coefficients, params, time_i
     idf_data["Tr_years"] = [2, 5, 10, 20, 30, 50, 75, 100]
 
     if dist_r2["max_dist"] == "r2_log_normal" or dist_r2["max_dist"] == "r2_log_pearson":
-        idf_data["1day"] = params["meanw"] + \
-            k_coefficient_data["k"] * params["stdw"]
+        idf_data["1day"] = np.power(10, (params["meanw"] +
+                                         k_coefficient_data["k"] * params["stdw"]))
     else:
         idf_data["1day"] = params["mean"] + \
             k_coefficient_data["k"] * params["std_dev"]
@@ -26,26 +26,46 @@ def rain_intensity_calculations(k_coefficient_data, coefficients, params, time_i
     for interval_name in time_interval.keys():
         if interval_name != "24h":
             idf_data[interval_name] = (
-                idf_data["1day"] * coefficients[interval_name]) / time_interval[interval_name]
+                idf_data["24h"] * coefficients[interval_name]) / time_interval[interval_name]
+
+    idf_data["24h"] = idf_data["24h"] / time_interval["24h"]
+
     return idf_data
 
 
-def transform_dataframe(idf_data, coefficients, time_interval):
+def transform_dataframe(idf_data, time_interval):
     """Transforms the original DataFrame to facilitate the calculation of the relative error."""
     rows = [
         {"Tr (years)": tr, "td (min)": interval_value * 60,
-         "i_real": (i_24h * coefficients[td]) / interval_value}
+         "i_real": idf_data.loc[idf_data["Tr_years"] == tr, td].values[0]}
         for tr in idf_data["Tr_years"]
         for td, interval_value in time_interval.items()
-        for i_24h in idf_data.loc[idf_data["Tr_years"] == tr, "24h"]
     ]
-    return pd.DataFrame(rows)
 
+    return pd.DataFrame(rows)
 
 def add_condition(df):
     """Adds a column to the DataFrame with the condition based on the time duration."""
-    df["condition"] = df["td (min)"].apply(lambda x: 1 if 5 <= x <= 60 else 2)
-    return df
+    rows = []
+    for index, row in df.iterrows():
+        td_min = row["td (min)"]
+        if td_min == 60:
+            new_row = row.copy()
+            new_row["condition"] = 1
+            rows.append(new_row.to_dict())
+            new_row["condition"] = 2
+            rows.append(new_row.to_dict())
+        elif 5 <= td_min < 60:
+            row["condition"] = 1
+            rows.append(row.to_dict())
+        elif 60 < td_min <= 1440:
+            row["condition"] = 2
+            rows.append(row.to_dict())
+        else:
+            row["condition"] = 3
+            rows.append(row.to_dict())
+
+    return pd.DataFrame(rows)
 
 
 def apply_i_calculated(df, parameters_1, parameters_2):
@@ -136,8 +156,9 @@ def handle_dist_name(dist_r2):
         chosen_dist = "Gumbel Finita"
     else:
         raise ValueError(f"Invalid distribution type: {dist_r2['max_dist']}")
-    
+
     return chosen_dist
+
 
 def main(distribution_data, k_coefficient_data, disaggregation_data, params, time_interval, dist_r2):
     """Main function to calculate optimal parameters and recalculate the DataFrame."""
@@ -147,7 +168,7 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
         k_coefficient_data, disaggregation_data, params, time_interval, dist_r2)
 
     transformed_df = transform_dataframe(
-        idf_data, disaggregation_data, time_interval)
+        idf_data, time_interval)
 
     initial_parameters = (1000, 0.1, 10, 1)
     transformed_df = add_condition(transformed_df)
@@ -162,8 +183,10 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
 
     mean_relative_errors, transformed_df = recalculate_dataframe(
         transformed_df, (k_opt1, m_opt1, c_opt1, n_opt1), (k_opt2, m_opt2, c_opt2, n_opt2))
-    
+
     chosen_dist = handle_dist_name(dist_r2)
+
+    transformed_df.to_csv('transformed_df.csv', sep=',')
 
     output = {
         "graph_data": {
