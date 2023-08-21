@@ -14,7 +14,7 @@ def rain_intensity_calculations(k_coefficient_data, coefficients, params, time_i
     idf_data = pd.DataFrame()
     idf_data["Tr_years"] = [2, 5, 10, 20, 30, 50, 75, 100]
 
-    if dist_r2["max_dist"] == "r2_log_normal" or dist_r2["max_dist"] == "r2_log_pearson":
+    if dist_r2["max_dist"] == "log_normal" or dist_r2["max_dist"] == "log_pearson":
         idf_data["1day"] = np.power(10, (params["meanw"] +
                                          k_coefficient_data["k"] * params["stdw"]))
     else:
@@ -145,15 +145,15 @@ def add_relative_error(df):
 
 
 def handle_dist_name(dist_r2):
-    if dist_r2["max_dist"] == 'r2_log_normal':
+    if dist_r2["max_dist"] == 'log_normal':
         chosen_dist = "log-normal"
-    elif dist_r2["max_dist"] == 'r2_pearson':
+    elif dist_r2["max_dist"] == 'pearson':
         chosen_dist = "Pearson tipo III"
-    elif dist_r2["max_dist"] == 'r2_log_pearson':
+    elif dist_r2["max_dist"] == 'log_pearson':
         chosen_dist = "log-Pearson tipo III"
-    elif dist_r2["max_dist"] == 'r2_gumbel_theo':
+    elif dist_r2["max_dist"] == 'gumbel_theoretical':
         chosen_dist = "Gumbel Teórica"
-    elif dist_r2["max_dist"] == 'r2_gumbel_finite':
+    elif dist_r2["max_dist"] == 'gumbel_finite':
         chosen_dist = "Gumbel Finita"
     else:
         raise ValueError(f"Invalid distribution type: {dist_r2['max_dist']}")
@@ -190,7 +190,8 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
     output = {
         "graph_data": {
             "F": (100*distribution_data["F"]).tolist(),
-            "P_dist": distribution_data["Pmax_anual"].tolist()[::-1],
+            "P_max": distribution_data["P_" + dist_r2["max_dist"]].tolist()[::-1],
+            # "P_dist": distribution_data[dist_name].tolist()[::-1],
         },
         "parameters": {
             "parameters_1": {

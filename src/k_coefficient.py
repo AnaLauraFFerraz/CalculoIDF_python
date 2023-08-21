@@ -64,15 +64,15 @@ def main(params, dist_r2):
 
     k_coefficient = k_coeficient_calculation()
 
-    if dist_r2["max_dist"] == 'r2_log_normal':
+    if dist_r2["max_dist"] == 'log_normal':
         k = k_dist_log_normal_calc(k_coefficient, params)
-    elif dist_r2["max_dist"] == 'r2_pearson':
+    elif dist_r2["max_dist"] == 'pearson':
         k = k_dist_pearson_calc(k_coefficient, params)
-    elif dist_r2["max_dist"] == 'r2_log_pearson':
+    elif dist_r2["max_dist"] == 'log_pearson':
         k = k_dist_log_pearson_calc(k_coefficient, params)
-    elif dist_r2["max_dist"] == 'r2_gumbel_theo':
+    elif dist_r2["max_dist"] == 'gumbel_theoretical':
         k = k_dist_gumbel_theoretical_calc(k_coefficient)
-    elif dist_r2["max_dist"] == 'r2_gumbel_finite':
+    elif dist_r2["max_dist"] == 'gumbel_finite':
         k = k_dist_gumbel_finite_calc(k_coefficient, params)
     else:
         raise ValueError(f"Invalid distribution type: {dist_r2['max_dist']}")

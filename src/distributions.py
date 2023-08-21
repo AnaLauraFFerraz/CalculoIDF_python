@@ -136,18 +136,18 @@ def dist_calculations(no_oulier_data, params):
 
     r2_gumbel_finite = dist_gumbel_finite(no_oulier_data, params)
 
-    distributions = {
-        "r2_log_normal": r2_log_normal,
-        "r2_pearson": r2_pearson,
-        "r2_log_pearson": r2_log_pearson,
-        "r2_gumbel_theo": r2_gumbel_theo,
-        "r2_gumbel_finite": r2_gumbel_finite
+    distributions_r2 = {
+        "log_normal": r2_log_normal,
+        "pearson": r2_pearson,
+        "log_pearson": r2_log_pearson,
+        "gumbel_theoretical": r2_gumbel_theo,
+        "gumbel_finite": r2_gumbel_finite
     }
 
-    max_dist = max(distributions, key=distributions.get)
-    max_r2 = distributions[max_dist]
-    # max_dist = "r2_pearson"
-    # max_r2 = distributions["r2_pearson"]
+    max_dist = max(distributions_r2, key=distributions_r2.get)
+    max_r2 = distributions_r2[max_dist]
+    # max_dist = "pearson"
+    # max_r2 = distributions["pearson"]
 
     dist_r2 = {"max_dist": max_dist,
                "max_value_r2": max_r2}
