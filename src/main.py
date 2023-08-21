@@ -19,13 +19,14 @@ def load_data(csv_file_path):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         input_data = pd.read_csv(csv_file_path, sep=";", encoding='ISO 8859-1', skiprows=12,
                                  decimal=",", usecols=["NivelConsistencia", "Data", "Maxima"], index_col=False)
-        
+
         # Check if the necessary columns are present
         required_columns = ["NivelConsistencia", "Data", "Maxima"]
         if not all(column in input_data.columns for column in required_columns):
-            print(f"CSV file {csv_file_path} does not have the required columns")
+            print(
+                f"CSV file {csv_file_path} does not have the required columns")
             return None
-        
+
         return input_data
     except FileNotFoundError:
         print(f"File {csv_file_path} not found")
@@ -46,8 +47,8 @@ def main(csv_file_path):
         print("Error loading data")
         error_loading_data = "Erro ao carregar o arquivo"
         return json.dumps(error_loading_data)
-    
-    processed_data = process_data(raw_df)
+
+    processed_data, empty_consistent_data, year_range = process_data(raw_df)
     if processed_data.empty:
         insufficient_data = "Dados não são sufientes para completar a análise"
         return json.dumps(insufficient_data)
@@ -58,12 +59,13 @@ def main(csv_file_path):
 
     distribution_data, params, dist_r2 = distributions(
         no_outlier, yn_table, sigman_table)
-    
+
     disaggregation_data, time_interval = disaggregation_coef()
     k_coefficient_data = k_coefficient(params, dist_r2)
 
     output = ventechow(distribution_data, k_coefficient_data,
-                       disaggregation_data, params, time_interval, dist_r2)
+                       disaggregation_data, params, time_interval, dist_r2,
+                         empty_consistent_data, year_range)
     return output
 
 
@@ -111,9 +113,9 @@ def process_request(request):
     return jsonify(result)
 
 
-# if __name__ == "__main__":
-#     cv = "CalculoIDF_python/src/csv/chuvas_C_01844000_CV.csv"
-#     pl = "CalculoIDF_python/src/csv/chuvas_C_01944009_PL.csv"
-#     ma = "CalculoIDF_python/src/csv/chuvas_C_02043032_MA.csv"
-#     csv_file_path = cv
-#     main(csv_file_path)
+if __name__ == "__main__":
+    cv = "CalculoIDF_python/src/csv/chuvas_C_01844000_CV.csv"
+    pl = "CalculoIDF_python/src/csv/chuvas_C_01944009_PL.csv"
+    ma = "CalculoIDF_python/src/csv/chuvas_C_02043032_MA.csv"
+    csv_file_path = cv
+    main(csv_file_path)

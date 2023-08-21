@@ -44,6 +44,7 @@ def transform_dataframe(idf_data, time_interval):
 
     return pd.DataFrame(rows)
 
+
 def add_condition(df):
     """Adds a column to the DataFrame with the condition based on the time duration."""
     rows = []
@@ -160,7 +161,8 @@ def handle_dist_name(dist_r2):
     return chosen_dist
 
 
-def main(distribution_data, k_coefficient_data, disaggregation_data, params, time_interval, dist_r2):
+def main(distribution_data, k_coefficient_data, disaggregation_data,
+          params, time_interval, dist_r2, empty_consistent_data, year_range):
     """Main function to calculate optimal parameters and recalculate the DataFrame."""
     print(dist_r2["max_dist"])
 
@@ -186,8 +188,6 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
 
     chosen_dist = handle_dist_name(dist_r2)
 
-    transformed_df.to_csv('transformed_df.csv', sep=',')
-
     output = {
         "graph_data": {
             "F": (100*distribution_data["F"]).tolist(),
@@ -209,13 +209,11 @@ def main(distribution_data, k_coefficient_data, disaggregation_data, params, tim
         },
         "mean_relative_errors": mean_relative_errors,
         "sample_size_above_30_years": params['size'] >= 30,
+        "empty_consistent_data": empty_consistent_data,
+        "year_range": year_range,
         "dist": chosen_dist
     }
 
-    # print(f"\ntd 5 a 60 min: k1={k_opt1}, m1={m_opt1}, c1={c_opt1}, n1={n_opt1}")
-    # print(f"td > 60 min: k2={k_opt2}, m2={m_opt2}, c2={c_opt2}, n2={n_opt2}")
-
-    # print(f"\nErro relativo médio: {mean_relative_errors}")
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(output)
     # transformed_df.to_csv('transformed_df.csv', sep=',')

@@ -123,9 +123,10 @@ def main(raw_df):
     raw_rain_data = get_raw_data(rain_data)
 
     if consistent_rain_data.empty:
-        print("consistent_rain_data is empty")
+        empty_consistent_data = True
         consistent_rain_data = raw_rain_data
     else:
+        empty_consistent_data = False
         filled_rain_data = merge_and_fill_data(consistent_rain_data, raw_rain_data)
 
     filled_rain_data = remove_out_of_cycle_data(filled_rain_data)
@@ -136,7 +137,12 @@ def main(raw_df):
         water_year_data.drop(water_year_data.index, inplace=True)
         return water_year_data
 
+    year_range = {
+        "first_year": water_year_data['AnoHidrologico'].min(),
+        "last_year": water_year_data['AnoHidrologico'].max()
+    }
+
     # print(water_year_data)
     # hydrological_year_data.to_csv('hydrological_year_data.csv', sep=',')
 
-    return water_year_data
+    return water_year_data, empty_consistent_data, year_range
