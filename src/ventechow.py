@@ -164,7 +164,6 @@ def handle_dist_name(dist_r2):
 def main(distribution_data, k_coefficient_data, disaggregation_data,
           params, time_interval, dist_r2, empty_consistent_data, year_range):
     """Main function to calculate optimal parameters and recalculate the DataFrame."""
-    print(dist_r2["max_dist"])
 
     idf_data = rain_intensity_calculations(
         k_coefficient_data, disaggregation_data, params, time_interval, dist_r2)

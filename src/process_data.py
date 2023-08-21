@@ -127,7 +127,8 @@ def main(raw_df):
         consistent_rain_data = raw_rain_data
     else:
         empty_consistent_data = False
-        filled_rain_data = merge_and_fill_data(consistent_rain_data, raw_rain_data)
+        filled_rain_data = merge_and_fill_data(
+            consistent_rain_data, raw_rain_data)
 
     filled_rain_data = remove_out_of_cycle_data(filled_rain_data)
 
@@ -138,8 +139,8 @@ def main(raw_df):
         return water_year_data
 
     year_range = {
-        "first_year": water_year_data['AnoHidrologico'].min(),
-        "last_year": water_year_data['AnoHidrologico'].max()
+        "first_year": str(water_year_data['AnoHidrologico'].min()),
+        "last_year": str(water_year_data['AnoHidrologico'].max())
     }
 
     # print(water_year_data)
