@@ -190,8 +190,8 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
     output = {
         "graph_data": {
             "F": (100*distribution_data["F"]).tolist(),
-            "P_max": distribution_data["P_" + dist_r2["max_dist"]].tolist()[::-1],
-            # "P_dist": distribution_data[dist_name].tolist()[::-1],
+            "P_max": distribution_data["Pmax_anual"].tolist()[::-1],
+            "P_dist": distribution_data["P_" + dist_r2["max_dist"]].tolist()[::-1],
         },
         "parameters": {
             "parameters_1": {
