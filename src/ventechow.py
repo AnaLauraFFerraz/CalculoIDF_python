@@ -83,8 +83,7 @@ def apply_i_calculated(df, parameters_1, parameters_2):
 def calculate_i(row, parameters):
     """Calculates the estimated rainfall intensity."""
     k, m, c, n = parameters
-    result = (k * row["Tr (years)"] ** m) / ((c + row["td (min)"]) ** n)
-    result = np.where(np.isfinite(result), result, 0)
+    result = (k * row["Tr (years)"] ** m) / ((c + row["td (min)"]) ** n).round(6)
     return result
 
 
@@ -154,7 +153,7 @@ def ns_test(df, condition):
     for index, row in df_interval.iterrows():
         term1 += ((row["i_real"] - row["i_calculated"])**2)
         term2 += (row["i_real"] - i_real_mean)**2
-    
+
     ns = 1 - term1/term2
 
     return ns
@@ -178,7 +177,7 @@ def handle_dist_name(dist_r2):
 
 
 def main(distribution_data, k_coefficient_data, disaggregation_data,
-          params, time_interval, dist_r2, empty_consistent_data, year_range):
+         params, time_interval, dist_r2, empty_consistent_data, year_range):
     """Main function to calculate optimal parameters and recalculate the DataFrame."""
 
     idf_data = rain_intensity_calculations(
@@ -206,11 +205,22 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
 
     chosen_dist = handle_dist_name(dist_r2)
 
+    df_interval_1 = transformed_df[transformed_df["condition"] == 1]
+    df_interval_2 = transformed_df[transformed_df["condition"] == 2]
+
     output = {
         "graph_data": {
             "F": (100*distribution_data["F"]).tolist(),
             "P_max": distribution_data["Pmax_anual"].tolist()[::-1],
             "P_dist": distribution_data["P_" + dist_r2["max_dist"]].tolist()[::-1],
+        },
+        "intensity_graph_data_1": {
+            "i_real": df_interval_1["i_real"].sort_values(ascending=True).tolist(),
+            "i_calculated": df_interval_1["i_calculated"].sort_values(ascending=True).tolist(),
+        },
+        "intensity_graph_data_2": {
+            "i_real": df_interval_2["i_real"].sort_values(ascending=True).tolist(),
+            "i_calculated": df_interval_2["i_calculated"].sort_values(ascending=True).tolist(),
         },
         "parameters": {
             "parameters_1": {
@@ -237,8 +247,9 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
         }
     }
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(output)
-    # transformed_df.to_csv('transformed_df.csv', sep=',')
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(output)
 
+    # transformed_df.to_csv('transformed_df.csv', sep=',')
+    print(output)
     return output
