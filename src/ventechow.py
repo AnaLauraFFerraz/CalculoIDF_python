@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.optimize import minimize
+from sklearn.linear_model import LinearRegression
 import pprint
 
 # Constants
@@ -159,6 +160,17 @@ def ns_test(df, condition):
     return ns
 
 
+def calculate_linear_regression(i_real, i_calculated):
+    model = LinearRegression()
+
+    model.fit(i_real, i_calculated)
+
+    slope = model.coef_[0]
+    intercept = model.intercept_
+
+    return slope, intercept
+
+
 def handle_dist_name(dist_r2):
     if dist_r2["max_dist"] == 'log_normal':
         chosen_dist = "log-normal"
@@ -208,6 +220,11 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
     df_interval_1 = transformed_df[transformed_df["condition"] == 1]
     df_interval_2 = transformed_df[transformed_df["condition"] == 2]
 
+    i_real = df_interval_1["i_real"].values.reshape(-1, 1)
+    i_calculated = df_interval_1["i_calculated"].values
+
+    slope, intercept = calculate_linear_regression(i_real, i_calculated)
+
     output = {
         "graph_data": {
             "F": (100*distribution_data["F"]).tolist(),
@@ -221,6 +238,10 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
         "intensity_graph_data_2": {
             "i_real": df_interval_2["i_real"].sort_values(ascending=True).tolist(),
             "i_calculated": df_interval_2["i_calculated"].sort_values(ascending=True).tolist(),
+        },
+        "regression": {
+            "slope": slope,
+            "intercept": intercept,
         },
         "parameters": {
             "parameters_1": {
