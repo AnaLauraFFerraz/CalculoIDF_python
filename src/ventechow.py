@@ -84,7 +84,8 @@ def apply_i_calculated(df, parameters_1, parameters_2):
 def calculate_i(row, parameters):
     """Calculates the estimated rainfall intensity."""
     k, m, c, n = parameters
-    result = (k * row["Tr (years)"] ** m) / ((c + row["td (min)"]) ** n).round(6)
+    result = (k * row["Tr (years)"] ** m) / ((c + row["td (min)"]) ** n)
+    result = np.where(np.isfinite(result), result, 0)
     return result
 
 
@@ -198,11 +199,11 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
     transformed_df = transform_dataframe(
         idf_data, time_interval)
 
-    initial_parameters = (1000, 0.1, 10, 1)
     transformed_df = add_condition(transformed_df)
 
+    # initial_parameters = (1000, 0.1, 10, 1)
     transformed_df = apply_i_calculated(
-        transformed_df, initial_parameters, initial_parameters)
+        transformed_df, INITIAL_GUESS, INITIAL_GUESS)
 
     transformed_df = add_relative_error(transformed_df)
 
@@ -220,14 +221,16 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
     df_interval_1 = transformed_df[transformed_df["condition"] == 1]
     df_interval_2 = transformed_df[transformed_df["condition"] == 2]
 
+    df_interval_1['i_calculated'] = df_interval_1['i_calculated'].apply(lambda x: x.item())
+    df_interval_2['i_calculated'] = df_interval_2['i_calculated'].apply(lambda x: x.item())
+
     i_real_1 = df_interval_1["i_real"].values.reshape(-1, 1)
     i_calculated_1 = df_interval_1["i_calculated"].values
-
-    slope_interval_1, intercept_interval_1 = calculate_linear_regression(i_real_1, i_calculated_1)
 
     i_real_2 = df_interval_2["i_real"].values.reshape(-1, 1)
     i_calculated_2 = df_interval_2["i_calculated"].values
 
+    slope_interval_1, intercept_interval_1 = calculate_linear_regression(i_real_1, i_calculated_1)
     slope_interval_2, intercept_interval_2 = calculate_linear_regression(i_real_2, i_calculated_2)
 
     output = {
@@ -277,9 +280,9 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
         }
     }
 
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(output)
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(output)
 
     # transformed_df.to_csv('transformed_df.csv', sep=',')
-    print(output)
+    # print(output)
     return output
