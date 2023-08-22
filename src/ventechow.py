@@ -144,6 +144,22 @@ def add_relative_error(df):
     return df
 
 
+def ns_test(df, condition):
+    df_interval = df[df["condition"] == condition]
+    i_real_mean = df_interval["i_real"].mean()
+
+    term1 = 0
+    term2 = 0
+
+    for index, row in df_interval.iterrows():
+        term1 += ((row["i_real"] - row["i_calculated"])**2)
+        term2 += (row["i_real"] - i_real_mean)**2
+    
+    ns = 1 - term1/term2
+
+    return ns
+
+
 def handle_dist_name(dist_r2):
     if dist_r2["max_dist"] == 'log_normal':
         chosen_dist = "log-normal"
@@ -185,6 +201,9 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
     mean_relative_errors, transformed_df = recalculate_dataframe(
         transformed_df, (k_opt1, m_opt1, c_opt1, n_opt1), (k_opt2, m_opt2, c_opt2, n_opt2))
 
+    ns_parameter_1 = ns_test(transformed_df, 1)
+    ns_parameter_2 = ns_test(transformed_df, 2)
+
     chosen_dist = handle_dist_name(dist_r2)
 
     output = {
@@ -211,7 +230,11 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
         "sample_size_above_30_years": params['size'] >= 30,
         "empty_consistent_data": empty_consistent_data,
         "year_range": year_range,
-        "dist": chosen_dist
+        "dist": chosen_dist,
+        "ns": {
+            "parameter_1": ns_parameter_1,
+            "parameter_2": ns_parameter_2
+        }
     }
 
     pp = pprint.PrettyPrinter(indent=4)

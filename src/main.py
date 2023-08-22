@@ -23,7 +23,8 @@ def load_data(csv_file_path):
         # Check if the necessary columns are present
         required_columns = ["NivelConsistencia", "Data", "Maxima"]
         if not all(column in input_data.columns for column in required_columns):
-            print(f"CSV file {csv_file_path} does not have the required columns")
+            print(
+                f"CSV file {csv_file_path} does not have the required columns")
             return None
 
         return input_data
@@ -51,7 +52,7 @@ def main(csv_file_path):
     if processed_data.empty:
         insufficient_data = "Dados não são sufientes para completar a análise"
         return json.dumps(insufficient_data)
-    
+
     no_outlier = outlier_test(processed_data)
 
     yn_table, sigman_table = yn_sigman()
@@ -64,7 +65,7 @@ def main(csv_file_path):
 
     output = ventechow(distribution_data, k_coefficient_data,
                        disaggregation_data, params, time_interval, dist_r2,
-                         empty_consistent_data, year_range)
+                       empty_consistent_data, year_range)
 
     return output
 
@@ -113,9 +114,9 @@ def process_request(request):
     return jsonify(result)
 
 
-# if __name__ == "__main__":
-#     cv = "CalculoIDF_python/src/csv/chuvas_C_01844000_CV.csv"
-#     pl = "CalculoIDF_python/src/csv/chuvas_C_01944009_PL.csv"
-#     ma = "CalculoIDF_python/src/csv/chuvas_C_02043032_MA.csv"
-#     csv_file_path = cv
-#     main(csv_file_path)
+if __name__ == "__main__":
+    cv = "CalculoIDF_python/src/csv/chuvas_C_01844000_CV.csv"
+    pl = "CalculoIDF_python/src/csv/chuvas_C_01944009_PL.csv"
+    ma = "CalculoIDF_python/src/csv/chuvas_C_02043032_MA.csv"
+    csv_file_path = cv
+    main(csv_file_path)
