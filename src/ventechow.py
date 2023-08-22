@@ -220,10 +220,15 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
     df_interval_1 = transformed_df[transformed_df["condition"] == 1]
     df_interval_2 = transformed_df[transformed_df["condition"] == 2]
 
-    i_real = df_interval_1["i_real"].values.reshape(-1, 1)
-    i_calculated = df_interval_1["i_calculated"].values
+    i_real_1 = df_interval_1["i_real"].values.reshape(-1, 1)
+    i_calculated_1 = df_interval_1["i_calculated"].values
 
-    slope, intercept = calculate_linear_regression(i_real, i_calculated)
+    slope_interval_1, intercept_interval_1 = calculate_linear_regression(i_real_1, i_calculated_1)
+
+    i_real_2 = df_interval_2["i_real"].values.reshape(-1, 1)
+    i_calculated_2 = df_interval_2["i_calculated"].values
+
+    slope_interval_2, intercept_interval_2 = calculate_linear_regression(i_real_2, i_calculated_2)
 
     output = {
         "graph_data": {
@@ -234,14 +239,18 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
         "intensity_graph_data_1": {
             "i_real": df_interval_1["i_real"].sort_values(ascending=True).tolist(),
             "i_calculated": df_interval_1["i_calculated"].sort_values(ascending=True).tolist(),
+            "regression": {
+                "slope": slope_interval_1,
+                "intercept": intercept_interval_1,
+            },
         },
         "intensity_graph_data_2": {
             "i_real": df_interval_2["i_real"].sort_values(ascending=True).tolist(),
             "i_calculated": df_interval_2["i_calculated"].sort_values(ascending=True).tolist(),
-        },
-        "regression": {
-            "slope": slope,
-            "intercept": intercept,
+            "regression": {
+                "slope": slope_interval_2,
+                "intercept": intercept_interval_2,
+            },
         },
         "parameters": {
             "parameters_1": {
