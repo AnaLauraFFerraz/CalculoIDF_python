@@ -101,8 +101,8 @@ def optimize_parameters(df, condition):
         objective_function,
         INITIAL_GUESS,
         args=(df_condition),
-        bounds=OPTIMIZATION_BOUNDS,
-        method="L-BFGS-B"
+        # bounds=OPTIMIZATION_BOUNDS,
+        method="BFGS"
     )
     k_opt, m_opt, c_opt, n_opt = result.x
     return k_opt.round(4), m_opt.round(4), c_opt.round(4), n_opt.round(4)
