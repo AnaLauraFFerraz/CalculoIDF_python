@@ -81,8 +81,9 @@ def dist_log_pearson(df, params):
     """Function to calculate r2 for the log-Pearson distribution."""
     alphaw = params["alphaw"]
 
-    df['YTRw'] = np.where(params["gw"] > 0, gamma.ppf(df["one_minus_F"],
-                                                alphaw, scale=1), gamma.ppf(df["F"], alphaw, scale=1))
+    df['YTRw'] = np.where(params["gw"] > 0, 
+                          gamma.ppf(df["one_minus_F"], alphaw, scale=1), 
+                          gamma.ppf(df["F"], alphaw, scale=1))
 
     df["KL_P"] = (params["gw"]/2)*(df['YTRw']-params["alphaw"])
     df["WTr_LP"] = params["meanw"] + params["stdw"] * df["KL_P"]

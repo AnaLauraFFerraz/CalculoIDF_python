@@ -195,9 +195,12 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
 
     idf_data = rain_intensity_calculations(
         k_coefficient_data, disaggregation_data, params, time_interval, dist_r2)
+    
+    idf_data.to_csv('idf_data.csv', sep=',')
 
     transformed_df = transform_dataframe(
         idf_data, time_interval)
+    
 
     transformed_df = add_condition(transformed_df)
 
@@ -280,9 +283,9 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
         }
     }
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(output)
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(output)
 
-    # transformed_df.to_csv('transformed_df.csv', sep=',')
+    
     # print(output)
     return output

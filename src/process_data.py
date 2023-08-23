@@ -124,7 +124,7 @@ def main(raw_df):
 
     if consistent_rain_data.empty:
         empty_consistent_data = True
-        consistent_rain_data = raw_rain_data
+        filled_rain_data = raw_rain_data
     else:
         empty_consistent_data = False
         filled_rain_data = merge_and_fill_data(
@@ -144,6 +144,6 @@ def main(raw_df):
     }
 
     # print(water_year_data)
-    # hydrological_year_data.to_csv('hydrological_year_data.csv', sep=',')
+    # water_year_data.to_csv('water_year_data.csv', sep=',')
 
     return water_year_data, empty_consistent_data, year_range
