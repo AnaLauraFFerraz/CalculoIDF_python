@@ -190,21 +190,18 @@ def handle_dist_name(dist_r2):
 
 
 def main(distribution_data, k_coefficient_data, disaggregation_data,
-         params, time_interval, dist_r2, empty_consistent_data, year_range):
+         params, time_interval, dist_r2, empty_consistent_data, year_range, empty_years):
     """Main function to calculate optimal parameters and recalculate the DataFrame."""
 
     idf_data = rain_intensity_calculations(
         k_coefficient_data, disaggregation_data, params, time_interval, dist_r2)
     
-    idf_data.to_csv('idf_data.csv', sep=',')
-
     transformed_df = transform_dataframe(
         idf_data, time_interval)
     
 
     transformed_df = add_condition(transformed_df)
 
-    # initial_parameters = (1000, 0.1, 10, 1)
     transformed_df = apply_i_calculated(
         transformed_df, INITIAL_GUESS, INITIAL_GUESS)
 
@@ -280,12 +277,11 @@ def main(distribution_data, k_coefficient_data, disaggregation_data,
         "ns": {
             "parameter_1": ns_parameter_1,
             "parameter_2": ns_parameter_2
-        }
+        },
+        "empty_years": empty_years
     }
 
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(output)
-
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(output)
     
-    # print(output)
     return output

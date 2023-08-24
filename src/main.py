@@ -44,11 +44,10 @@ def main(csv_file_path):
     calculate the k coefficient, and calculate the Ven Te Chow parameters."""
     raw_df = load_data(csv_file_path)
     if raw_df is None:
-        print("Error loading data")
         error_loading_data = "Erro ao carregar o arquivo"
         return json.dumps(error_loading_data)
 
-    processed_data, empty_consistent_data, year_range = process_data(raw_df)
+    processed_data, empty_consistent_data, year_range, empty_years = process_data(raw_df)
     if processed_data.empty:
         insufficient_data = "Dados não são sufientes para completar a análise"
         return json.dumps(insufficient_data)
@@ -65,8 +64,7 @@ def main(csv_file_path):
 
     output = ventechow(distribution_data, k_coefficient_data,
                        disaggregation_data, params, time_interval, dist_r2,
-                       empty_consistent_data, year_range)
-
+                       empty_consistent_data, year_range, empty_years)
     return output
 
 
@@ -118,5 +116,17 @@ if __name__ == "__main__":
     cv = "CalculoIDF_python/src/csv/chuvas_C_01844000_CV.csv"
     pl = "CalculoIDF_python/src/csv/chuvas_C_01944009_PL.csv"
     ma = "CalculoIDF_python/src/csv/chuvas_C_02043032_MA.csv"
-    csv_file_path = cv
+
+    file1 = "CalculoIDF_python/src/csv/chuvas_C_01943011.csv"
+    file2 = "CalculoIDF_python/src/csv/chuvas_C_02346117.csv"
+    file3 = "CalculoIDF_python/src/csv/chuvas_C_02346328.csv"
+    file4 = "CalculoIDF_python/src/csv/chuvas_C_02040022.csv"
+    file5 = "CalculoIDF_python/src/csv/chuvas_C_02243155.csv"
+
+    file6 = "CalculoIDF_python/src/csv/chuvas_C_01848001_UB.csv"
+    file7 = "CalculoIDF_python/src/csv/chuvas_C_02040003_FFL.csv"
+    file8 = "CalculoIDF_python/src/csv/chuvas_C_02043011_FAZ_P.csv"
+    file9 = "CalculoIDF_python/src/csv/chuvas_C_02243077_HF_RIO.csv"
+
+    csv_file_path = file9
     main(csv_file_path)

@@ -19,8 +19,8 @@ def resample_data(df):
     Function to resample data by the start of each month.
     """
     df = df.set_index('Data')
-    df = df.resample('MS')
-    df = df.ffill()
+    df = df.resample('MS').first()
+    df = df.fillna(0) 
     df = df.reset_index()
     return df
 
@@ -110,13 +110,19 @@ def add_water_year(df):
 
     return water_year_df
 
+def check_empty_year(water_year_data):
+    """add doctring here"""
+    empty_years = water_year_data[water_year_data['Pmax_anual'] == 0]['AnoHidrologico'].tolist()
+    water_year_data = water_year_data[water_year_data['Pmax_anual'] != 0]
+    if len(empty_years) == 0:
+        empty_years = False
+    return water_year_data, empty_years
 
 def main(raw_df):
     """
     Main function to process the raw data, get consistent and raw data,
     merge and fill the data, remove out of cycle data, and add a water year.
     """
-
     raw_df = raw_df.fillna(0)
     rain_data = process_raw_data(raw_df)
     consistent_rain_data = get_consistent_data(rain_data)
@@ -134,16 +140,18 @@ def main(raw_df):
 
     water_year_data = add_water_year(filled_rain_data)
 
+    water_year_data, empty_years = check_empty_year(water_year_data)
+    year_range = None
+
     if water_year_data.shape[0] < 10:
         water_year_data.drop(water_year_data.index, inplace=True)
-        return water_year_data
+        return water_year_data, empty_consistent_data, year_range, empty_years
 
     year_range = {
         "first_year": str(water_year_data['AnoHidrologico'].min()),
         "last_year": str(water_year_data['AnoHidrologico'].max())
     }
 
-    # print(water_year_data)
     # water_year_data.to_csv('water_year_data.csv', sep=',')
 
-    return water_year_data, empty_consistent_data, year_range
+    return water_year_data, empty_consistent_data, year_range, empty_years
