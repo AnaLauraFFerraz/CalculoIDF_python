@@ -26,7 +26,7 @@ def calculate_statistics(df):
 def calc_critical_values(grubbs_test, sample_size, ln_p_mean, ln_p_std):
     """
     Function to calculate critical values (t_crit_10, x_h, x_l) 
-    based on Grubbs' and Grubbs and Beck Test.
+    based on Grubbs, and Grubbs and Beck Test.
     Args:
         grubbs_test (Dictionary): The dictionary containing the Grubbs' Test values.
         sample_size (int): The size of the sample.

@@ -57,8 +57,7 @@ def dist_log_normal(df, params):
 
     corr_log_normal, _ = stats.pearsonr(df["Pmax_anual"], df["P_log_normal"])
     r2_log_normal = corr_log_normal ** 2
-    r2_log_normal = r2_log_normal.round(4)
-    return r2_log_normal
+    return r2_log_normal.round(4)
 
 
 def dist_pearson(df, params):
@@ -73,8 +72,7 @@ def dist_pearson(df, params):
 
     corr_pearson, _ = stats.pearsonr(df["Pmax_anual"], df["P_pearson"])
     r2_pearson = corr_pearson ** 2
-    r2_pearson = r2_pearson.round(4)
-    return r2_pearson
+    return r2_pearson.round(4)
 
 
 def dist_log_pearson(df, params):
@@ -91,8 +89,7 @@ def dist_log_pearson(df, params):
 
     corr_log_pearson, _ = stats.pearsonr(df["Pmax_anual"], df["P_log_pearson"])
     r2_log_pearson = corr_log_pearson ** 2
-    r2_log_pearson = r2_log_pearson.round(4)
-    return r2_log_pearson
+    return r2_log_pearson.round(4)
 
 
 def dist_gumbel_theoretical(df, params):
@@ -107,8 +104,7 @@ def dist_gumbel_theoretical(df, params):
         df["Pmax_anual"], df["P_gumbel_theoretical"])
 
     r2_gumbel_theo = corr_gumbel ** 2
-    r2_gumbel_theo = r2_gumbel_theo.round(4)
-    return r2_gumbel_theo
+    return r2_gumbel_theo.round(4)
 
 
 def dist_gumbel_finite(df, params):
@@ -120,8 +116,7 @@ def dist_gumbel_finite(df, params):
         df["Pmax_anual"], df["P_gumbel_finite"])
 
     r2_gumbel_finite = corr_gumbel_finite ** 2
-    r2_gumbel_finite = r2_gumbel_finite.round(4)
-    return r2_gumbel_finite
+    return r2_gumbel_finite.round(4)
 
 
 def dist_calculations(no_oulier_data, params):
