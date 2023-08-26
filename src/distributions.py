@@ -5,7 +5,7 @@ from scipy.stats import norm, stats, gamma
 def exceedence_calculation(df, sample_size):
     """Calculate exceedence for the given dataframe."""
     df["F"] = (df.index + 1) / (sample_size + 1)
-    df["F"] = df["F"].round(4)
+    df["F"] = df["F"]
     df["one_minus_F"] = 1 - df["F"]
     df["P_log"] = np.log10(df["Pmax_anual"])
     return df

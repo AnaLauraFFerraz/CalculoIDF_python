@@ -77,8 +77,9 @@ def remove_outliers(df, p_mean, p_std, t_crit_10, x_h, x_l):
     # Check lower outlier for Grubbs and Beck' test
     while True:
         p_min = df['Pmax_anual'].min()
+        t_smaller = (p_mean - p_min) / p_std
 
-        if p_min >= x_l:
+        if p_min >= x_l or t_smaller <= t_crit_10:
             break
 
         df = df.drop(df[df['Pmax_anual'] == p_min].index)
@@ -95,19 +96,20 @@ def main(processed_data):
     Returns:
         DataFrame: Returns the processed dataframe with outliers removed.
     """
+
     try:
         sample_size, p_mean, ln_p_mean, p_std, ln_p_std = calculate_statistics(
             processed_data)
         grubbs_test = grubbs_test_table()
         t_crit_10, x_h, x_l = calc_critical_values(
             grubbs_test, sample_size, ln_p_mean, ln_p_std)
+        
         no_outliers_data = remove_outliers(
             processed_data, p_mean, p_std, t_crit_10, x_h, x_l)
+        no_outliers_data = no_outliers_data.reset_index(drop=True)
         
     except Exception as e:
         print(f"An error occurred: {e}")
         return pd.DataFrame()
-    
-    # no_outliers_data.to_csv('no_outliers_data.csv', sep=',')
 
     return no_outliers_data
