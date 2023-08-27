@@ -20,7 +20,7 @@ def resample_data(df):
     """
     df = df.set_index('Data')
     df = df.resample('MS').first()
-    df = df.fillna(0) 
+    df = df.fillna(0)
     df = df.reset_index()
     return df
 
@@ -102,6 +102,15 @@ def add_water_year(df):
     water_year_df = df.groupby("AnoHidrologico")["Maxima"].max(
     ).reset_index().rename(columns={"Maxima": "Pmax_anual"})
 
+    # Loop to remove initial values of 'Pmax_anual' in dataframe equals 0
+    while not water_year_df.empty and water_year_df.iloc[0]['Pmax_anual'] == 0:
+        water_year_df = water_year_df.iloc[1:].reset_index(drop=True)
+
+    # Loop to remove las values of 'Pmax_anual' in dataframe equals 0
+    while not water_year_df.empty and water_year_df.iloc[-1]['Pmax_anual'] == 0:
+        water_year_df = water_year_df.iloc[:-1].reset_index(drop=True)
+
+
     water_year_df['ln_Pmax_anual'] = np.log(
         water_year_df['Pmax_anual'])
 
@@ -110,19 +119,27 @@ def add_water_year(df):
 
     return water_year_df
 
+
 def check_empty_year(water_year_data):
-    """add doctring here"""
-    empty_years = water_year_data[water_year_data['Pmax_anual'] == 0]['AnoHidrologico'].tolist()
+    """Check for years with empty 'Pmax_anual' and return the cleaned water_year_data without those years."""
+
+    empty_years = water_year_data[water_year_data['Pmax_anual']
+                                  == 0]['AnoHidrologico'].tolist()
+    empty_years.sort()
+
     water_year_data = water_year_data[water_year_data['Pmax_anual'] != 0]
+
     if len(empty_years) == 0:
         empty_years = False
     return water_year_data, empty_years
+
 
 def main(raw_df):
     """
     Main function to process the raw data, get consistent and raw data,
     merge and fill the data, remove out of cycle data, and add a water year.
     """
+
     raw_df = raw_df.fillna(0)
     rain_data = process_raw_data(raw_df)
     consistent_rain_data = get_consistent_data(rain_data)
@@ -141,6 +158,7 @@ def main(raw_df):
     water_year_data = add_water_year(filled_rain_data)
 
     water_year_data, empty_years = check_empty_year(water_year_data)
+
     year_range = None
 
     if water_year_data.shape[0] < 10:
