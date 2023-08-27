@@ -117,16 +117,17 @@ if __name__ == "__main__":
     pl = "CalculoIDF_python/src/csv/chuvas_C_01944009_PL.csv"
     ma = "CalculoIDF_python/src/csv/chuvas_C_02043032_MA.csv"
 
-    file1 = "CalculoIDF_python/src/csv/chuvas_C_01943011.csv"
-    file2 = "CalculoIDF_python/src/csv/chuvas_C_02346117.csv"
-    file3 = "CalculoIDF_python/src/csv/chuvas_C_02346328.csv"
-    file4 = "CalculoIDF_python/src/csv/chuvas_C_02040022.csv"
-    file5 = "CalculoIDF_python/src/csv/chuvas_C_02243155.csv"
+    file1 = "CalculoIDF_python/src/csv/chuvas_C_01943011.csv" # BH
+    file2 = "CalculoIDF_python/src/csv/chuvas_C_02346117.csv" # SP
+    file3 = "CalculoIDF_python/src/csv/chuvas_C_02346328.csv" # Guarulhos
+    file4 = "CalculoIDF_python/src/csv/chuvas_C_02040022.csv" # VV
+    file5 = "CalculoIDF_python/src/csv/chuvas_C_02243155.csv" # DCX
 
     file6 = "CalculoIDF_python/src/csv/chuvas_C_01848001_UB.csv"
     file7 = "CalculoIDF_python/src/csv/chuvas_C_02040003_FFL.csv"
     file8 = "CalculoIDF_python/src/csv/chuvas_C_02043011_FAZ_P.csv"
     file9 = "CalculoIDF_python/src/csv/chuvas_C_02243077_HF_RIO.csv"
+    file10 = "CalculoIDF_python/src/csv/chuvas_C_01844000_CV1.csv"
 
-    csv_file_path = file9
+    csv_file_path = file10
     main(csv_file_path)

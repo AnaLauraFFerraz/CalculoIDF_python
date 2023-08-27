@@ -15,8 +15,7 @@ def k_coeficient_calculation():
 def k_dist_log_normal_calc(k_coefficient, params):
     """Calculate the k coefficient for a log-normal distribution."""
 
-    k_coefficient["k"] = params["meanw"] + \
-        norm.ppf(k_coefficient["no_exceedance"]) * params["stdw"]
+    k_coefficient["k"] = norm.ppf(k_coefficient["no_exceedance"])
     return k_coefficient.round(4)
 
 

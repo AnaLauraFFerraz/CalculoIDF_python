@@ -11,7 +11,7 @@ def exceedence_calculation(df, sample_size):
     return df
 
 
-def params_calculation(df, sigmaN, yn, sample_size):
+def params_calculation(df, yn, sigmaN, sample_size):
     """Calculate parameters for the given dataframe."""
     mean = df["Pmax_anual"].mean()
     std_dev = df["Pmax_anual"].std()
@@ -46,7 +46,7 @@ def yn_sigman_calculation(yn_table, sigman_table, sample_size):
     the dataframe based on the sample size."""
     yn = yn_table[sample_size]
     sigman = sigman_table[sample_size]
-    return sigman, yn
+    return yn, sigman
 
 
 def dist_log_normal(df, params):
@@ -142,8 +142,8 @@ def dist_calculations(no_oulier_data, params):
 
     max_dist = max(distributions_r2, key=distributions_r2.get)
     max_r2 = distributions_r2[max_dist]
-    # max_dist = "pearson"
-    # max_r2 = distributions["pearson"]
+    # max_dist = "gumbel_finite"
+    # max_r2 = distributions_r2["gumbel_finite"]
 
     dist_r2 = {"max_dist": max_dist,
                "max_value_r2": max_r2}
@@ -160,7 +160,7 @@ def main(no_oulier_data, yn_table, sigman_table):
 
     yn, sigmaN = yn_sigman_calculation(yn_table, sigman_table, sample_size)
 
-    params = params_calculation(distribuitions_df, sigmaN, yn, sample_size)
+    params = params_calculation(distribuitions_df, yn, sigmaN, sample_size)
 
     distributions_data, dist_r2 = dist_calculations(
         distribuitions_df, params)
