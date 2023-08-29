@@ -142,8 +142,6 @@ def dist_calculations(no_oulier_data, params):
 
     max_dist = max(distributions_r2, key=distributions_r2.get)
     max_r2 = distributions_r2[max_dist]
-    # max_dist = "gumbel_finite"
-    # max_r2 = distributions_r2["gumbel_finite"]
 
     dist_r2 = {"max_dist": max_dist,
                "max_value_r2": max_r2}

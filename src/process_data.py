@@ -170,6 +170,4 @@ def main(raw_df):
         "last_year": str(water_year_data['AnoHidrologico'].max())
     }
 
-    # water_year_data.to_csv('water_year_data.csv', sep=',')
-
     return water_year_data, empty_consistent_data, year_range, empty_years

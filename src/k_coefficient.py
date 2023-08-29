@@ -12,7 +12,7 @@ def k_coeficient_calculation():
     return k_coefficient
 
 
-def k_dist_log_normal_calc(k_coefficient, params):
+def k_dist_log_normal_calc(k_coefficient):
     """Calculate the k coefficient for a log-normal distribution."""
 
     k_coefficient["k"] = norm.ppf(k_coefficient["no_exceedance"])
@@ -66,7 +66,7 @@ def main(params, dist_r2):
     k_coefficient = k_coeficient_calculation()
 
     if dist_r2["max_dist"] == 'log_normal':
-        k = k_dist_log_normal_calc(k_coefficient, params)
+        k = k_dist_log_normal_calc(k_coefficient)
     elif dist_r2["max_dist"] == 'pearson':
         k = k_dist_pearson_calc(k_coefficient, params)
     elif dist_r2["max_dist"] == 'log_pearson':
