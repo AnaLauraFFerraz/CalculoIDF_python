@@ -1,20 +1,23 @@
-# Fins de linha normalizados no repositório e na cópia de trabalho (D-41).
-# Prevalece sobre o core.autocrlf de cada máquina.
+# Normalize line endings in the repository and in the working copy (D-41).
+# Takes precedence over each machine's core.autocrlf.
 * text=auto eol=lf
 
-# Scripts do Windows precisam de CRLF para rodar
+# Windows scripts need CRLF to run
 *.bat text eol=crlf
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
 
-# CSVs do Hidroweb são entradas dos golden files: preservar os bytes exatamente
-# como foram baixados (sem conversão de fim de linha)
+# Hidroweb CSVs are golden-file inputs: keep their bytes exactly
+# as downloaded (no line-ending conversion)
 *.csv -text
 
-# Binários
+# Binaries
 *.pdf  binary
 *.png  binary
 *.jpg  binary
 *.jpeg binary
 *.zip  binary
 *.xlsx binary
+
+# Spec Kit scaffolding does not count toward the repository's language statistics
+.specify/** linguist-vendored
