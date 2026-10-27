@@ -1,39 +1,55 @@
-# Cálculo IDF - Python
+# CalculoIDF — Python
 
-Este repositório contém o código Python para calcular a Intensidade-Duração-Frequência (IDF) a partir de dados de chuva. O código lê um arquivo CSV com dados de chuva, processa os dados e calcula a IDF.
+Computation core of CalculoIDF: it reads a rainfall series downloaded from Hidroweb (ANA) and determines the **Intensity-Duration-Frequency (IDF) equation** `i = k · Tr^m / (c + td)^n` for the station.
 
-## Contexto
+The project started as an undergraduate thesis in Civil Engineering (UFOP, 2023). The exact code described in the thesis is preserved in the [`tcc-2023` release](https://github.com/AnaLauraFFerraz/CalculoIDF_python/releases/tag/tcc-2023). The project is being modernized; see `docs/`.
 
-A Intensidade-Duração-Frequência (IDF) é uma medida importante em hidrologia e é usada para planejar e projetar infraestruturas de drenagem. Este projeto visa fornecer uma ferramenta para calcular a IDF a partir de dados de chuva.
+## What it does
 
-## Funcionalidades
+From the monthly maximum daily rainfall of one station (Hidroweb CSV), the pipeline:
 
-- Ler um arquivo CSV com dados de chuva.
-- Processar os dados para remover outliers e calcular a média mensal.
-- Calcular a IDF usando a fórmula de Ven Te Chow.
+1. prefers consisted data and fills gaps with raw data, then trims the series to complete October–September water years and takes the annual maxima;
+2. removes outliers (Grubbs and Grubbs & Beck tests, 10%);
+3. fits five probability distributions (log-normal, Pearson III, log-Pearson III, theoretical and finite Gumbel) and keeps the one with the highest R²;
+4. computes rainfall for return periods of 2 to 100 years and disaggregates it into durations from 5 minutes to 24 hours;
+5. fits the IDF equation separately for 5–60 min and 60–1440 min, and reports the mean relative error and the Nash-Sutcliffe efficiency.
 
-## Tecnologias Utilizadas
+Series with fewer than 10 water years are rejected. The full methodology is in [`docs/knowledge/01-domain-and-methodology.md`](docs/knowledge/01-domain-and-methodology.md).
 
-- Python para a implementação do código.
-- Pandas para a manipulação de dados.
-- Numpy para cálculos numéricos.
+## Current state
 
-## Como Usar
+- Deployed as a Google Cloud Function (1st gen, Python 3.10), entry point `process_request` in `src/main.py`. The function receives a `gs://` URL to a CSV previously uploaded to Firebase Storage by the [Node API](https://github.com/AnaLauraFFerraz/CalculoIDF_API); the web interface is [CalculoIDF_front](https://github.com/AnaLauraFFerraz/CalculoIDF_front).
+- Dependencies pinned in `requirements.txt` (pandas 2.0.1, numpy 1.24.3, scipy 1.10.1).
+- 13 real Hidroweb CSVs in `src/csv/`.
+- No automated tests yet.
 
-1. Clone este repositório para a sua máquina local.
-2. Instale as dependências do projeto com o comando `pip install -r requirements.txt`.
-3. Execute o código com o comando `python src/main.py`.
+The planned changes (characterization tests, then a single FastAPI service replacing the Node API and the Cloud Function) are described in [`docs/adr/`](docs/adr/) and [`docs/knowledge/04-roadmap.md`](docs/knowledge/04-roadmap.md).
 
-## Estrutura do Projeto
+## Running locally
 
-- `src/main.py`: Este é o arquivo principal do projeto. Ele lê o arquivo CSV, processa os dados e calcula a IDF.
-- `src/process_data.py`: Este arquivo contém a função para processar os dados do arquivo CSV.
-- `src/yn_sigman.py`: Este arquivo contém um dicionário que mapeia valores de 'n' para 'yn_sigman'.
+Requires [uv](https://docs.astral.sh/uv/).
 
-## Contribuindo
+```powershell
+uv venv --python 3.10 .venv
+uv pip install -r requirements.txt
+```
 
-Contribuições são sempre bem-vindas! Sinta-se à vontade para abrir uma issue ou fazer um pull request.
+Importing `src/main.py` creates a Google Cloud Storage client and fails without GCP credentials.
 
-## Licença
+## Structure
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+| Path | Content |
+|---|---|
+| `src/main.py` | HTTP handler and pipeline orchestration |
+| `src/process_data.py` | Data preparation and annual maxima per water year |
+| `src/outlier_test.py`, `src/grubbs_test.py` | Outlier tests and Grubbs critical values |
+| `src/distributions.py`, `src/yn_sigman.py` | Distributions, R² and finite Gumbel tables |
+| `src/k_coefficient.py`, `src/disaggregation_coef.py` | Frequency factors and disaggregation coefficients |
+| `src/ventechow.py` | IDF fitting, error metrics and output JSON |
+| `src/gcs_utils.py` | Download and deletion of the CSV in Cloud Storage |
+| `docs/adr/` | Architecture decision records |
+| `docs/knowledge/` | Domain, current system, decisions, roadmap and technical notes |
+
+## License
+
+No license has been chosen yet.
