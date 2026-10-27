@@ -1,0 +1,20 @@
+# Fins de linha normalizados no repositório e na cópia de trabalho (D-41).
+# Prevalece sobre o core.autocrlf de cada máquina.
+* text=auto eol=lf
+
+# Scripts do Windows precisam de CRLF para rodar
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# CSVs do Hidroweb são entradas dos golden files: preservar os bytes exatamente
+# como foram baixados (sem conversão de fim de linha)
+*.csv -text
+
+# Binários
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.zip  binary
+*.xlsx binary
