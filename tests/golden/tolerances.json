@@ -1,0 +1,15 @@
+{
+  "measured_at": null,
+  "reference_environment": null,
+  "measured_environment": null,
+  "safety_factor": 10,
+  "rules": [
+    {"pattern": "parameters.**", "rel_tol": null, "abs_tol": null, "measured_max_abs": null, "measured_max_rel": null},
+    {"pattern": "intensity_graph_data_*.i_calculated[*]", "rel_tol": null, "abs_tol": null, "measured_max_abs": null, "measured_max_rel": null},
+    {"pattern": "intensity_graph_data_*.regression.*", "rel_tol": null, "abs_tol": null, "measured_max_abs": null, "measured_max_rel": null},
+    {"pattern": "mean_relative_errors.*", "rel_tol": null, "abs_tol": null, "measured_max_abs": null, "measured_max_rel": null},
+    {"pattern": "ns.*", "rel_tol": null, "abs_tol": null, "measured_max_abs": null, "measured_max_rel": null},
+    {"pattern": "graph_data.**", "rel_tol": null, "abs_tol": null, "measured_max_abs": null, "measured_max_rel": null},
+    {"pattern": "**", "rel_tol": 1e-12, "abs_tol": 0.0, "measured_max_abs": null, "measured_max_rel": null}
+  ]
+}
