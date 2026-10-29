@@ -169,7 +169,7 @@ coefficient by 0.001 makes it fail with series id, field path, expected and actu
   `tests/golden/real/*.json` files and the changelog entry (fingerprint is Linux / x86_64 /
   Python 3.10 / pinned versions; the two insufficient-data series have `result_kind:
   "string"`), then commits them as `test: add golden files for the 13 real series`.
-- [ ] T016 [US1] Create `scripts/measure_env_diff.py` per the contract: runs `main.main` for
+- [X] T016 [US1] Create `scripts/measure_env_diff.py` per the contract: runs `main.main` for
   selected series in the current environment, compares with the golden files **without
   tolerances**, reports per tolerance-rule group and per series the max absolute and max
   relative difference, number of differing leaves, and any non-numeric difference (reported as a
