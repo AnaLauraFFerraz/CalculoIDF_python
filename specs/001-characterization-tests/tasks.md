@@ -141,7 +141,7 @@ frozen reference; exact in the reference environment, tolerant elsewhere.
 **Independent Test**: on a clean checkout the suite passes; changing a disaggregation
 coefficient by 0.001 makes it fail with series id, field path, expected and actual.
 
-- [ ] T011 [US1] Create `tests/characterization/test_golden.py`: one parametrized case per
+- [X] T011 [US1] Create `tests/characterization/test_golden.py`: one parametrized case per
   registered series (ids = series ids, marker `golden`); asserts the input SHA-256 equals
   `metadata.input_sha256` (a mismatch fails: input changed); runs `run_series`; compares
   `result_kind` and `result` with the selected mode; on failure the assertion message lists, per
