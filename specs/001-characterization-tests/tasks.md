@@ -109,8 +109,8 @@ Single project. Tests in `tests/`, maintenance scripts in `scripts/`, workflow i
   `**` rule (`rel_tol: 1e-12`, `abs_tol: 0.0`), `safety_factor: 10`.
 - [X] T009 Create `.github/workflows/characterization.yml` (R-03, R-04, R-09): triggers `push`
   (all branches) and `workflow_dispatch` (inputs `reason` required, `series` optional); no
-  `pull_request` trigger. Both jobs on `ubuntu-24.04`, `actions/checkout@v4`,
-  `actions/setup-python@v5` with Python 3.10, `pip install -r requirements.txt -r
+  `pull_request` trigger. Both jobs on `ubuntu-24.04`, `actions/checkout@v7`,
+  `actions/setup-python@v7` with Python 3.10, `pip install -r requirements.txt -r
   requirements-test.txt`, workflow-level env `OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
   MKL_NUM_THREADS=1 OPENBLAS_CORETYPE=Haswell` and `NPY_DISABLE_CPU_FEATURES` with the AVX-512
   list of R-03.
@@ -125,7 +125,7 @@ Single project. Tests in `tests/`, maintenance scripts in `scripts/`, workflow i
     or the `reason` input (dispatch), passed through an **environment variable** (never
     `${{ }}` inside the shell command); runs
     `python scripts/update_golden.py --reason "$REASON" [--series ...]`; uploads `tests/golden/`
-    with `actions/upload-artifact@v4` as `golden-${{ github.run_id }}`; never commits.
+    with `actions/upload-artifact@v7` as `golden-${{ github.run_id }}`; never commits.
 - [X] T010 Run `.venv\Scripts\python -m pytest tests/unit` and fix until green. Run
   `git diff main -- src/ requirements.txt` and confirm it is empty.
 

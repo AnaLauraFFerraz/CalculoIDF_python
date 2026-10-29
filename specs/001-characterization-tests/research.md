@@ -233,9 +233,23 @@ and the code in `src/` as of `255ac0e`.
     `tests/golden/` as an artifact (R-04). Not a required check.
 
   Both jobs share the reference environment setup (`ubuntu-24.04`, Python 3.10, the pins, the
-  BLAS thread variables). Actions pinned by major version tag (`actions/checkout@v4`,
-  `actions/setup-python@v5`, `actions/upload-artifact@v4`). The ruleset on `main` is **manual
+  BLAS thread variables). Actions pinned by major version tag (`actions/checkout@v7`,
+  `actions/setup-python@v7`, `actions/upload-artifact@v7`). The ruleset on `main` is **manual
   step M-1** in the plan.
+  - **Deviation (2026-10-29)**: the plan first pinned `checkout@v4`, `setup-python@v5` and
+    `upload-artifact@v4`. The first CI run (40913456358) warned that they target the deprecated
+    Node.js 20, so the workflow uses the current majors, which run on Node.js 24. Release notes
+    from our versions up to v7 were read; nothing affects this workflow:
+    - `checkout` (v5 to v7): Node 24 (runner ≥ 2.327.1, met by hosted runners); v6 stores
+      credentials in a separate file (the workflow runs no authenticated git command after
+      checkout); v5.1/v6.1/v7 block fork-PR checkouts for `pull_request_target` and
+      `workflow_run` (not used: triggers are `push` and `workflow_dispatch`). Default fetch
+      behavior is not changed in these notes.
+    - `setup-python` (v6, v7): Node 24; v7 removes the `pip-install` input (not used); the
+      `python-version` input is unchanged.
+    - `upload-artifact` (v5 to v7): Node 24; v7 adds `archive` (default `true`, so the
+      `name`/`path` behavior is unchanged); hidden files have been excluded by default since
+      v4.4 and `tests/golden/` has none.
 - **Rationale**: a required status check is a repository setting, not code; listing it as a
   manual step keeps it explicit and reviewable.
 - **Alternatives considered**: classic branch protection (rulesets are the current mechanism and
