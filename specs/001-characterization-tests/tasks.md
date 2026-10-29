@@ -34,10 +34,10 @@ Single project. Tests in `tests/`, maintenance scripts in `scripts/`, workflow i
 
 **Purpose**: Test tooling and local environment (research R-07).
 
-- [ ] T001 Create `requirements-test.txt` containing only `pytest==8.3.5`.
-- [ ] T002 [P] Create `pytest.ini` with `testpaths = tests`, a `golden` marker, and no
+- [X] T001 Create `requirements-test.txt` containing only `pytest==8.3.5`.
+- [X] T002 [P] Create `pytest.ini` with `testpaths = tests`, a `golden` marker, and no
   `filterwarnings = error` (library warnings must not break the comparison, research R-08).
-- [ ] T003 Reuse the existing `.venv` (Python 3.10; do not recreate it) and install only the
+- [X] T003 Reuse the existing `.venv` (Python 3.10; do not recreate it) and install only the
   test requirements: `uv pip install -r requirements-test.txt`. Confirm `git status` shows
   `requirements.txt` untouched.
 
