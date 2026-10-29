@@ -35,22 +35,43 @@ and the code in `src/` as of `255ac0e`.
 - **Decision**: reference environment = GitHub Actions `ubuntu-24.04` (pinned label, not
   `ubuntu-latest`), `actions/setup-python` with Python 3.10, `pip install -r requirements.txt
   -r requirements-test.txt`. Environment variables `OMP_NUM_THREADS=1`,
-  `OPENBLAS_NUM_THREADS=1`, `MKL_NUM_THREADS=1` are set in the workflow **and** in
-  `conftest.py` before numpy is imported. The environment fingerprint
-  (`platform.system()`, Python `major.minor`, versions of numpy, pandas, scipy, scikit-learn) is
-  stored in each golden file's metadata. The reference fingerprint itself is a constant in
+  `OPENBLAS_NUM_THREADS=1`, `MKL_NUM_THREADS=1` **and the CPU-kernel variables**
+  `OPENBLAS_CORETYPE=Haswell` and
+  `NPY_DISABLE_CPU_FEATURES="AVX512F,AVX512CD,AVX512_SKX,AVX512_CLX,AVX512_CNL,AVX512_ICL"` are
+  always set, from the initial generation on, in the workflow (workflow-level `env`) **and**
+  locally (`tests/characterization/bootstrap.py`, called by `conftest.py` and the maintenance
+  scripts) before numpy is imported. The environment fingerprint
+  (`platform.system()`, machine, Python `major.minor`, versions of numpy, pandas, scipy,
+  scikit-learn, and the effective values of the two kernel variables) is
+  stored in each golden file's metadata; a run without the pinned kernels never matches the
+  reference fingerprint. The reference fingerprint itself is a constant in
   `tests/characterization/compare.py` (`REFERENCE_FINGERPRINT`): `Linux`, `x86_64`, Python
   `3.10`, and the numpy, pandas, scipy and scikit-learn versions read from the pins in
-  `requirements.txt`, so it exists before any golden file does. Before the ruleset is enabled, the CI job is run
-  several times (≥ 3 runs; re-runs on new runners count) to confirm bit-exact stability; if it is not stable,
-  set `OPENBLAS_CORETYPE` to a fixed kernel (e.g., `Haswell`) in both generation and check, and
-  regenerate.
+  `requirements.txt` and the two kernel variables, so it exists before any golden file does. Before the
+  ruleset is enabled, the CI job is run several times (≥ 3 runs; re-runs on new runners count) to
+  **verify** bit-exact stability (task T020); the kernels are not a reaction to instability, they
+  are pinned from the start (evidence below).
 - **Rationale**: FR-005, FR-009, clarification Q1. BFGS with a fixed initial guess is
   deterministic in a fixed environment; multithreaded BLAS and CPU-specific kernels are the
   known sources of last-bit variation.
 - **Alternatives considered**: a Docker image (`python:3.10-slim`) as the reference (more
   control, but adds an image to maintain; can be adopted later if runner variation appears);
   `ubuntu-latest` (drifts silently).
+- **Evidence for pinning the CPU kernels** (maintainer's review, measured 2026-10-27 and 2026-10-29; same pins,
+  Python 3.10, Linux). OpenBLAS and numpy dispatch kernels by CPU (AVX-512 vs AVX2); the
+  ill-conditioned fit (D-01) amplifies the last-bit differences into the fitted parameters.
+
+  | Date | Setup | Host | Result |
+  |---|---|---|---|
+  | 2026-10-27 | Thread variables = 1 only | cloud host | `chuvas_C_01944009_PL` k2 = 855.25 |
+  | 2026-10-29 | Thread variables = 1 only | cloud host | `chuvas_C_01944009_PL` k2 = 894.73 |
+  | 2026-10-29 | Thread variables = 1 only | Intel i7-9750H | `chuvas_C_01944009_PL` k2 = 906.92 |
+  | 2026-10-29 | Thread variables = 1, `OPENBLAS_CORETYPE=Haswell`, `NPY_DISABLE_CPU_FEATURES` as above | AVX-512 Xeon and Intel i7-9750H | all 13 outputs byte-identical (same SHA-256) |
+
+  On CPUs without AVX-512, numpy prints a harmless `RuntimeWarning` that those features cannot be
+  disabled; `pytest.ini` does not turn warnings into errors (R-08), so it does not fail the suite.
+  The thread variables alone changed nothing. **Decision**: both kernel variables are always set,
+  in CI and locally, from the initial generation on.
 
 ## R-04 — How golden files are generated in Linux from a Windows machine
 

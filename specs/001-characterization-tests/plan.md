@@ -4,7 +4,7 @@
 
 **Status**: Approved (2026-10-29)
 
-**Amended**: 2026-10-29 — CI trigger aligned after /speckit-analyze (A1): `characterization` runs on push only; the required check is satisfied on the head SHA.
+**Amended**: 2026-10-29 — CI trigger aligned after /speckit-analyze (A1): `characterization` runs on push only; the required check is satisfied on the head SHA; CPU kernels pinned from the start (R-03).
 
 **Input**: Feature specification from `specs/001-characterization-tests/spec.md`; technical notes
 from `docs/knowledge/07-technical-notes-by-feature.md`, section "001 — Characterization tests".
@@ -173,8 +173,9 @@ golden-file inputs).
 ## Risks
 
 - **Bit-exactness across CI runners**: OpenBLAS selects kernels by CPU; GitHub runners vary in
-  CPU model. Mitigation in R-03 (single-thread BLAS, fixed kernel via `OPENBLAS_CORETYPE` if
-  needed, repeated runs before the ruleset is enabled).
+  CPU model. Mitigation in R-03 (single-thread BLAS, CPU kernels pinned from the start with
+  `OPENBLAS_CORETYPE` and `NPY_DISABLE_CPU_FEATURES`, repeated runs before the ruleset is enabled
+  to verify stability).
 - **Production parity of the reference environment**: the Cloud Function also runs on Linux
   x86-64 with Python 3.10 and the same pins, but its exact CPU is unknown. The golden files
   characterize the code with the pinned libraries, not a specific machine; the production

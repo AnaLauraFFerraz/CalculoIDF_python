@@ -17,7 +17,9 @@ trailing newline. Written only by `scripts/update_golden.py`.
       "numpy": "1.24.3",
       "pandas": "2.0.1",
       "scipy": "1.10.1",
-      "scikit-learn": "1.3.0"
+      "scikit-learn": "1.3.0",
+      "OPENBLAS_CORETYPE": "Haswell",
+      "NPY_DISABLE_CPU_FEATURES": "AVX512F,AVX512CD,AVX512_SKX,AVX512_CLX,AVX512_CNL,AVX512_ICL"
     },
     "marker": null
   },
@@ -35,7 +37,9 @@ trailing newline. Written only by `scripts/update_golden.py`.
 - `marker`: `null` or `{"status": "known-defect" | "suspected", "debt": "D-02", "fix": "C-02",
   "note": "<one line>"}`.
 - The `environment` fingerprint used to choose `exact` mode compares `os`, `machine`, Python
-  `major.minor` and the four library versions.
+  `major.minor`, the four library versions and the effective values of `OPENBLAS_CORETYPE` and
+  `NPY_DISABLE_CPU_FEATURES` (CPU kernels pinned, research R-03); a run without them never
+  matches the reference.
 - `NaN`, `Infinity` and `-Infinity` are accepted in `result`: they are written as the tokens
   Python's `json` module emits (`NaN`, `Infinity`, `-Infinity`), which it reads back exactly.
   The file is therefore JSON as Python reads it, not strict RFC 8259 JSON.

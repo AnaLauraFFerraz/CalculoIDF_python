@@ -41,6 +41,7 @@ REFERENCE_FINGERPRINT = {
     "machine": "x86_64",
     "python": "3.10",
     **_pinned_versions(),
+    **bootstrap.KERNEL_VARIABLES,
 }
 
 
@@ -50,6 +51,7 @@ def fingerprint():
         "machine": platform.machine(),
         "python": platform.python_version(),
         **{library: metadata.version(library) for library in LIBRARIES},
+        **{variable: os.environ.get(variable) for variable in bootstrap.KERNEL_VARIABLES},
     }
 
 
@@ -61,6 +63,8 @@ def fingerprints_match(first, second):
     if first["os"] != second["os"] or first["machine"] != second["machine"]:
         return False
     if _major_minor(first["python"]) != _major_minor(second["python"]):
+        return False
+    if any(first.get(variable) != second.get(variable) for variable in bootstrap.KERNEL_VARIABLES):
         return False
     return all(first[library] == second[library] for library in LIBRARIES)
 

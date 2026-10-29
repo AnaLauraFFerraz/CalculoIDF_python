@@ -126,3 +126,22 @@ def test_fingerprints_match_ignores_python_patch_only():
     assert not compare.fingerprints_match(base, dict(base, python="3.11.1"))
     assert not compare.fingerprints_match(base, dict(base, os="Windows"))
     assert not compare.fingerprints_match(base, dict(base, numpy="2.0.0"))
+
+
+def test_unpinned_kernels_never_count_as_the_reference():
+    base = dict(compare.REFERENCE_FINGERPRINT, python="3.10.12")
+    assert base["OPENBLAS_CORETYPE"] == "Haswell"
+    assert "AVX512F" in base["NPY_DISABLE_CPU_FEATURES"]
+    assert compare.fingerprints_match(base, compare.REFERENCE_FINGERPRINT)
+    assert not compare.fingerprints_match(base, dict(base, OPENBLAS_CORETYPE=None))
+    assert not compare.fingerprints_match(base, dict(base, OPENBLAS_CORETYPE="SkylakeX"))
+    assert not compare.fingerprints_match(base, dict(base, NPY_DISABLE_CPU_FEATURES=None))
+    legacy = {k: v for k, v in base.items() if k not in ("OPENBLAS_CORETYPE", "NPY_DISABLE_CPU_FEATURES")}
+    assert not compare.fingerprints_match(legacy, base)
+
+
+def test_fingerprint_reports_the_effective_kernel_variables(monkeypatch):
+    monkeypatch.delenv("OPENBLAS_CORETYPE", raising=False)
+    assert compare.fingerprint()["OPENBLAS_CORETYPE"] is None
+    monkeypatch.setenv("OPENBLAS_CORETYPE", "Haswell")
+    assert compare.fingerprint()["OPENBLAS_CORETYPE"] == "Haswell"

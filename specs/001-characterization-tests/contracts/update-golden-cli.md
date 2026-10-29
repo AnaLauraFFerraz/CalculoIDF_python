@@ -13,8 +13,9 @@ python scripts/update_golden.py --reason "<text>" [--series ID ...] [--allow-non
 | `--allow-non-reference` | Allows running outside the reference environment; writes to a scratch directory given by `--out`, never to `tests/golden/`, and adds no changelog entry. |
 
 - The reference environment is `REFERENCE_FINGERPRINT` in `tests/characterization/compare.py`
-  (`Linux`, `x86_64`, Python `3.10`, and the numpy, pandas, scipy, scikit-learn versions read
-  from `requirements.txt`). When the current fingerprint does not match it and
+  (`Linux`, `x86_64`, Python `3.10`, the numpy, pandas, scipy, scikit-learn versions read
+  from `requirements.txt`, and the pinned CPU kernels `OPENBLAS_CORETYPE=Haswell` and
+  `NPY_DISABLE_CPU_FEATURES`, research R-03). When the current fingerprint does not match it and
   `--allow-non-reference` is absent → exit 3, nothing written.
 - A golden file is rewritten only when `result_kind`, `result`, `metadata.input_sha256` or
   `metadata.marker` change; `generated_at` alone does not count, and unchanged files are left

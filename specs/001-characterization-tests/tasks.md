@@ -50,18 +50,24 @@ Single project. Tests in `tests/`, maintenance scripts in `scripts/`, workflow i
 **⚠️ CRITICAL**: No user story starts before this phase is complete.
 
 - [X] T004 Create `tests/conftest.py`: (a) set `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`,
-  `MKL_NUM_THREADS=1` in `os.environ` **before** numpy is imported; (b) put `src/` on `sys.path`;
+  `MKL_NUM_THREADS=1`, `OPENBLAS_CORETYPE=Haswell` and `NPY_DISABLE_CPU_FEATURES="AVX512F,AVX512CD,AVX512_SKX,AVX512_CLX,AVX512_CNL,AVX512_ICL"`
+  in `os.environ` **before** numpy is imported (R-03; implemented in
+  `tests/characterization/bootstrap.py`, which `conftest.py` and the scripts call; a numpy
+  `RuntimeWarning` on CPUs without AVX-512 is harmless); (b) put `src/` on `sys.path`;
   (c) register a stub `google.cloud.storage` in `sys.modules` (and as the `storage` attribute of
   `google.cloud`) whose `Client()` returns an object whose methods raise, before `main` is
   imported (R-01); (d) an autouse fixture replacing `socket.socket.connect` and
   `socket.create_connection` with functions that raise (R-10, FR-004).
 - [X] T005 Create `tests/characterization/compare.py` with:
   - `fingerprint()` (os, machine, Python `major.minor.micro`, numpy, pandas, scipy,
-    scikit-learn — contract golden-file.schema.md) and `fingerprints_match()` (compares os,
-    machine, Python `major.minor` and the four library versions);
+    scikit-learn, and the effective values of `OPENBLAS_CORETYPE` and
+    `NPY_DISABLE_CPU_FEATURES` — contract golden-file.schema.md) and `fingerprints_match()`
+    (compares os, machine, Python `major.minor`, the four library versions and the two kernel
+    variables);
   - `REFERENCE_FINGERPRINT`, a module constant: `os: "Linux"`, `machine: "x86_64"`,
-    `python: "3.10"`, and the versions of `numpy`, `pandas`, `scipy`, `scikit-learn` **read from
-    the pins in `requirements.txt`** at import time (research R-03, R-11);
+    `python: "3.10"`, the versions of `numpy`, `pandas`, `scipy`, `scikit-learn` **read from
+    the pins in `requirements.txt`** at import time, and the two kernel variables with the
+    values of R-03 (research R-03, R-11);
   - `normalize()` (numpy scalars → `.item()`, arrays → lists, JSON round-trip with
     `sort_keys=True`; `NaN`/`Infinity` are kept — contract golden-file.schema.md);
   - `run_series(csv_path)` returning `(result_kind, result)` for `object`/`string`/`exception`
@@ -105,7 +111,9 @@ Single project. Tests in `tests/`, maintenance scripts in `scripts/`, workflow i
   (all branches) and `workflow_dispatch` (inputs `reason` required, `series` optional); no
   `pull_request` trigger. Both jobs on `ubuntu-24.04`, `actions/checkout@v4`,
   `actions/setup-python@v5` with Python 3.10, `pip install -r requirements.txt -r
-  requirements-test.txt`, env `OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1`.
+  requirements-test.txt`, workflow-level env `OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+  MKL_NUM_THREADS=1 OPENBLAS_CORETYPE=Haswell` and `NPY_DISABLE_CPU_FEATURES` with the AVX-512
+  list of R-03.
   - Job `characterization` (name exactly `characterization`): runs on `push` to any branch only
     (`if: github.event_name == 'push'`); not on `pull_request` and not on `workflow_dispatch`,
     so there are no duplicate runs. A PR's required check is satisfied by this push-triggered
@@ -180,13 +188,14 @@ coefficient by 0.001 makes it fail with series id, field path, expected and actu
 - [ ] T019 [US1] Run `.venv\Scripts\python -m pytest` on Windows (tolerant mode): all 13 real
   series pass, total under 60 s (SC-002). Run it twice and confirm identical outcome (FR-005).
   Commit tolerances and research table as `test: set per-field tolerances from measurement`.
-- [ ] T020 [MANUAL] [US1] Stability check before relying on exact mode (R-03): the
+- [ ] T020 [MANUAL] [US1] Verify stability before relying on exact mode (R-03): the
   `characterization` job must pass in exact mode on at least 3 runs; re-runs on new runners
   count. The runs are re-runs of the push-triggered job on the branch head, started from the
-  draft PR of T013. If it varies in the last bit,
-  set `OPENBLAS_CORETYPE` to a fixed kernel (e.g. `Haswell`) in the workflow, regenerate the
-  golden files with a `[regenerate-golden]` push, and repeat. Record the outcome in
-  `research.md`.
+  draft PR of T013. The CPU kernels are already pinned (`OPENBLAS_CORETYPE=Haswell`,
+  `NPY_DISABLE_CPU_FEATURES`) from the initial generation, so this task verifies stability; it
+  no longer reacts to instability. If a run still differs, stop and report it; do not change
+  the golden files or the tolerances. Record the outcome (runs, runner CPU models if visible)
+  in `research.md`.
 
 **Checkpoint**: US1 is functional: the 13 real series are frozen and checked in both modes.
 
