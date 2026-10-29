@@ -49,13 +49,13 @@ Single project. Tests in `tests/`, maintenance scripts in `scripts/`, workflow i
 
 **⚠️ CRITICAL**: No user story starts before this phase is complete.
 
-- [ ] T004 Create `tests/conftest.py`: (a) set `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`,
+- [X] T004 Create `tests/conftest.py`: (a) set `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`,
   `MKL_NUM_THREADS=1` in `os.environ` **before** numpy is imported; (b) put `src/` on `sys.path`;
   (c) register a stub `google.cloud.storage` in `sys.modules` (and as the `storage` attribute of
   `google.cloud`) whose `Client()` returns an object whose methods raise, before `main` is
   imported (R-01); (d) an autouse fixture replacing `socket.socket.connect` and
   `socket.create_connection` with functions that raise (R-10, FR-004).
-- [ ] T005 Create `tests/characterization/compare.py` with:
+- [X] T005 Create `tests/characterization/compare.py` with:
   - `fingerprint()` (os, machine, Python `major.minor.micro`, numpy, pandas, scipy,
     scikit-learn — contract golden-file.schema.md) and `fingerprints_match()` (compares os,
     machine, Python `major.minor` and the four library versions);
@@ -79,13 +79,13 @@ Single project. Tests in `tests/`, maintenance scripts in `scripts/`, workflow i
     `tolerant` mode refuse to run with a clear error while any rule in `tolerances.json` has a
     `null` tolerance (contract tolerances.schema.md). Path syntax: dot-separated keys, `[i]` for
     list indices; patterns `*`, `[*]`, `**`.
-- [ ] T006 [P] Create `tests/unit/test_compare.py` testing the comparator itself: identical
+- [X] T006 [P] Create `tests/unit/test_compare.py` testing the comparator itself: identical
   structures pass; one differing leaf is reported with the right path; type mismatches
   (`false` vs list, `1` vs `True`, `"2001"` vs `2001`) fail even in tolerant mode; list
   length/order; extra/missing key; `NaN` equality; pattern matching and first-match-wins; exact
   mode rejects a 1-ulp difference that tolerant mode accepts; the `null`-tolerance refusal;
   `REFERENCE_FINGERPRINT` matches the pins in `requirements.txt`.
-- [ ] T007 Create `scripts/update_golden.py` per `contracts/update-golden-cli.md`: argparse with
+- [X] T007 Create `scripts/update_golden.py` per `contracts/update-golden-cli.md`: argparse with
   required `--reason` (empty after trimming → exit 2, nothing written), optional `--series`,
   `--allow-non-reference` with `--out`; when the current fingerprint does not match
   `compare.REFERENCE_FINGERPRINT` and the flag is absent → exit 3. Writes
@@ -98,10 +98,10 @@ Single project. Tests in `tests/`, maintenance scripts in `scripts/`, workflow i
   (add `tests/` to `sys.path`) and the same conftest-style storage stub and thread variables so it
   runs without credentials. Prints the series written; the field-path diff is T020 and the
   changelog is T022.
-- [ ] T008 [P] Create `tests/golden/tolerances.json` with the shape of
+- [X] T008 [P] Create `tests/golden/tolerances.json` with the shape of
   `contracts/tolerances.schema.md`: the seven rules, all tolerances `null` except the default
   `**` rule (`rel_tol: 1e-12`, `abs_tol: 0.0`), `safety_factor: 10`.
-- [ ] T009 Create `.github/workflows/characterization.yml` (R-03, R-04, R-09): triggers `push`
+- [X] T009 Create `.github/workflows/characterization.yml` (R-03, R-04, R-09): triggers `push`
   (all branches) and `workflow_dispatch` (inputs `reason` required, `series` optional); no
   `pull_request` trigger. Both jobs on `ubuntu-24.04`, `actions/checkout@v4`,
   `actions/setup-python@v5` with Python 3.10, `pip install -r requirements.txt -r
@@ -118,7 +118,7 @@ Single project. Tests in `tests/`, maintenance scripts in `scripts/`, workflow i
     `${{ }}` inside the shell command); runs
     `python scripts/update_golden.py --reason "$REASON" [--series ...]`; uploads `tests/golden/`
     with `actions/upload-artifact@v4` as `golden-${{ github.run_id }}`; never commits.
-- [ ] T010 Run `.venv\Scripts\python -m pytest tests/unit` and fix until green. Run
+- [X] T010 Run `.venv\Scripts\python -m pytest tests/unit` and fix until green. Run
   `git diff main -- src/ requirements.txt` and confirm it is empty.
 
 **Checkpoint**: harness, comparator, generator and workflow exist; no golden files yet.
