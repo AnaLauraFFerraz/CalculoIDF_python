@@ -2,13 +2,14 @@ name: characterization
 
 on:
   push:
+    branches: ['**']
   workflow_dispatch:
     inputs:
       reason:
         description: Why the golden files are being regenerated
         required: true
       series:
-        description: Space-separated series ids (default: all)
+        description: "Space-separated series ids (default: all)"
         required: false
 
 env:
