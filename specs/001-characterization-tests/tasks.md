@@ -200,7 +200,7 @@ that lists the changed fields and the size of each change.
 **Independent Test**: regenerating one series with a reason adds a changelog entry (date,
 series id, changed fields, reason); without a reason the script refuses and writes nothing.
 
-- [ ] T021 [US2] Extend `scripts/update_golden.py`: for each selected series compare the new
+- [X] T021 [US2] Extend `scripts/update_golden.py`: for each selected series compare the new
   content with the existing golden file. A file **is rewritten only when `result_kind`,
   `result`, `metadata.input_sha256` or `metadata.marker` change**; a difference in
   `generated_at` (or in `environment` alone) does not count, and an unchanged file is left
@@ -209,9 +209,9 @@ series id, changed fields, reason); without a reason the script refuses and writ
   and max relative delta** over numeric leaves (constitution principle I). Unknown `--series`
   ID → exit 2 with the list of valid IDs. If no golden changed, print that and add no changelog
   entry (contract).
-- [ ] T022 [US2] Implement `--allow-non-reference` with `--out <dir>`: writes only to the given
+- [X] T022 [US2] Implement `--allow-non-reference` with `--out <dir>`: writes only to the given
   scratch directory, never to `tests/golden/`, and adds no changelog entry.
-- [ ] T023 [US2] Implement the changelog in `scripts/update_golden.py`: append-only
+- [X] T023 [US2] Implement the changelog in `scripts/update_golden.py`: append-only
   `tests/golden/CHANGELOG.md`, one entry per run with UTC date, series IDs, reason, environment
   fingerprint, trigger (workflow run URL from `GITHUB_SERVER_URL`/`GITHUB_REPOSITORY`/
   `GITHUB_RUN_ID` when present, else "local (reference environment)"), and a **Markdown table
@@ -219,7 +219,7 @@ series id, changed fields, reason); without a reason the script refuses and writ
   followed by the changed field paths (computed, not typed). The script prints the same table to
   stdout so it can be pasted into the PR description. Create the file with a short header if
   absent.
-- [ ] T024 [P] [US2] Create `tests/unit/test_update_golden.py`, calling the script's function with
+- [X] T024 [P] [US2] Create `tests/unit/test_update_golden.py`, calling the script's function with
   a golden root under `tmp_path` and the reference fingerprint injected through `monkeypatch`
   (never touching `tests/golden/`): missing or whitespace-only `--reason` → exit 2 and no file
   written; unknown series → exit 2; non-reference fingerprint without the flag → exit 3 and
