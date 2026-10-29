@@ -148,7 +148,7 @@ coefficient by 0.001 makes it fail with series id, field path, expected and actu
   diff, **series id, field path, expected value, actual value, rule** (FR-003, US1 scenario 2);
   business-message and exception results are compared too (US1 scenario 3). A missing golden
   file fails with a message pointing to `scripts/update_golden.py`.
-- [ ] T012 [US1] Add the `marker` definitions for real series in `compare.py`'s registry.
+- [X] T012 [US1] Add the `marker` definitions for real series in `compare.py`'s registry.
   C-01 (D-01) affects every fitted result, so there is **no per-station marker** for it; state
   that in a comment at the registry and in `tests/fixtures/synthetic/README.md` (T027). C-03
   (D-07): only `chuvas_C_02346117` has outliers removed today (4 years — 1969, 1970, 1972,

@@ -120,6 +120,14 @@ def test_reference_fingerprint_matches_the_pins_in_requirements():
         assert f"{library}=={ref[library]}" in requirements
 
 
+def test_only_the_station_with_removed_outliers_carries_a_marker():
+    real = [e for e in compare.series_registry() if e["kind"] == "real"]
+    assert len(real) == 13
+    marked = {e["id"]: e["marker"] for e in real if e["marker"] is not None}
+    assert list(marked) == ["chuvas_C_02346117"]
+    assert (marked["chuvas_C_02346117"]["debt"], marked["chuvas_C_02346117"]["fix"]) == ("D-07", "C-03")
+
+
 def test_fingerprints_match_ignores_python_patch_only():
     base = dict(compare.REFERENCE_FINGERPRINT, python="3.10.12")
     assert compare.fingerprints_match(base, dict(base, python="3.10.22"))

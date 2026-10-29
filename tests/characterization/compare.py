@@ -100,8 +100,16 @@ def run_series(csv_path):
     return ("string" if isinstance(result, str) else "object"), result
 
 
-# Markers of known or suspected defects, keyed by series id.
-MARKERS = {}
+# Markers of known or suspected defects, keyed by series id. C-01 (D-01, BFGS ignores the
+# declared bounds) affects every fitted result, so it has no per-station marker.
+MARKERS = {
+    "chuvas_C_02346117": {
+        "status": "suspected",
+        "debt": "D-07",
+        "fix": "C-03",
+        "note": "4 low outliers removed without recomputing the statistics",
+    },
+}
 
 
 def _sha256(path):
