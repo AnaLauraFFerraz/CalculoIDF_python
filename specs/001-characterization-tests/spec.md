@@ -6,6 +6,8 @@
 
 **Status**: Approved (2026-10-29)
 
+**Amended**: 2026-10-29 (ADR 0003) — FR-002 and SC-003: per-field rules across environments (numeric tolerances before the fit, structure-only allowed after it) and a sensitivity criterion stated by comparison mode.
+
 **Input**: User description: "Freeze the current behavior of the IDF computation on real Hidroweb
 series, so that any future change that alters results is detected before it reaches the user."
 
@@ -134,7 +136,7 @@ merge.
 - The computation depends on cloud services to obtain the file — the tests must not depend on
   them.
 - Upgrading the numerical libraries can change the fitted parameters (`k, m, c, n`) much more
-  than the fitted intensities (D-01); the tolerance must take this into account per field.
+  than the fitted intensities (D-01); the per-field rule must take this into account.
 
 ## Requirements *(mandatory)*
 
@@ -142,14 +144,15 @@ merge.
 
 - **FR-001**: The suite MUST process each of the 13 real reference series and compare the
   **full** output with that series' frozen reference.
-- **FR-002**: The comparison MUST use a configurable numeric tolerance, definable per field. In
-  the reference environment (equal to production: Linux, the production Python version and the
-  pinned library versions) the comparison MUST require exact (bit-for-bit) equality. In any other
-  environment (e.g., the Windows development machine) it MUST use per-field tolerances, with the
-  fitted parameters (`k, m, c, n`) set separately from the intensities and the metrics. The
-  tolerance values are not fixed in this spec: they are set during planning by measuring the
-  actual differences between the development machine and the reference environment, and are
-  recorded with the references.
+- **FR-002**: The comparison MUST apply configurable per-field rules. In the reference
+  environment (equal to production: Linux, the production Python version and the pinned library
+  versions) the comparison MUST require exact (bit-for-bit) equality for every field. In any other
+  environment (e.g., the Windows development machine), fields computed before the fit MUST use
+  numeric tolerances set by measurement; the fitted parameters (`k, m, c, n`) and the fields
+  derived from them MAY be compared by structure only (types, keys, list lengths, NaN-ness), with
+  a recorded reason, when the measurement shows differences that no tolerance able to detect the
+  SC-003 changes can bound (ADR 0003). The rules and the measurement are recorded with the
+  references.
 - **FR-003**: On failure, the suite MUST report station, field path, expected value and actual
   value.
 - **FR-004**: The suite MUST run without network access and without cloud credentials.
@@ -184,9 +187,12 @@ merge.
 
 - **SC-001**: 100% of the 13 real series and of the 7 edge cases covered.
 - **SC-002**: The full suite runs in under 60 seconds on a development machine.
-- **SC-003**: A change of 0.001 in any disaggregation coefficient, in the optimization's initial
-  guess or in a value of the statistical tables makes the suite fail (sensitivity test done
-  once, manually).
+- **SC-003**: A change of 0.001 in any disaggregation coefficient, in a constant of a candidate
+  distribution, or in the optimization's initial guess makes the suite fail, each in the
+  comparison mode that can observe the fields it reaches (tolerant mode for pre-fit fields, exact
+  mode in the reference environment for fit-only changes); statistical-table values that cannot
+  change the output (unreachable or threshold-gated) are outside this criterion. Sensitivity
+  test done once, manually.
 - **SC-004**: Zero network calls during execution.
 - **SC-005**: Every reference update in the history has a recorded reason.
 
