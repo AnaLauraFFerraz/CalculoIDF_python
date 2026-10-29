@@ -4,6 +4,8 @@
 
 **Status**: Approved (2026-10-29)
 
+**Amended**: 2026-10-29 — CI trigger aligned after /speckit-analyze (A1): `characterization` runs on push only; the required check is satisfied on the head SHA.
+
 **Input**: Feature specification from `specs/001-characterization-tests/spec.md`; technical notes
 from `docs/knowledge/07-technical-notes-by-feature.md`, section "001 — Characterization tests".
 
@@ -16,7 +18,7 @@ pipeline and compares the full output recursively: **bit-for-bit** in the refere
 (the CI job), **per-field tolerances** anywhere else (e.g., the Windows development machine).
 The tolerance values come from an explicit measurement of the Windows-vs-reference differences
 on the 13 CSVs. A script regenerates golden files only with a recorded reason and appends to a
-versioned changelog. A GitHub Actions workflow runs the suite on every push and pull request; a
+versioned changelog. A GitHub Actions workflow runs the suite on every push; a
 repository ruleset (manual step) makes it a required status check on `main`. Production code is
 not touched: the import-time `storage.Client()` is neutralized by a test-side stub of
 `google.cloud.storage`.
@@ -115,7 +117,7 @@ scripts/
 ├── measure_env_diff.py           # compare current environment vs golden; per-field report
 └── make_synthetic_fixtures.py    # deterministic generator of the synthetic CSVs (run once)
 
-.github/workflows/characterization.yml   # jobs: characterization (push, pull_request);
+.github/workflows/characterization.yml   # jobs: characterization (push (any branch));
                                          # generate-golden (push with [regenerate-golden],
                                          # workflow_dispatch after the merge)
 requirements-test.txt             # pytest (pinned); installed with -r requirements.txt
@@ -146,7 +148,7 @@ golden-file inputs).
    reference environment, mark known/suspected defects (D-02/C-02, D-13).
 5. **Deliberate update path (US2)** — `update_golden.py` refusal without reason, changelog
    entry with changed fields, `--station` filter.
-6. **Automatic protection (US4)** — `characterization` job on push and pull_request in the
+6. **Automatic protection (US4)** — `characterization` job on push (any branch) in the
    reference environment, exact mode enforced; `generate-golden` job also reachable by
    `workflow_dispatch` once the workflow is on `main`, for later regenerations
    (`gh workflow run characterization.yml --ref <branch> -f reason="..."`); **manual step

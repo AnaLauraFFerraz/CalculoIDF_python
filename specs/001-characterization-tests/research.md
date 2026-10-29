@@ -38,8 +38,11 @@ and the code in `src/` as of `255ac0e`.
   `OPENBLAS_NUM_THREADS=1`, `MKL_NUM_THREADS=1` are set in the workflow **and** in
   `conftest.py` before numpy is imported. The environment fingerprint
   (`platform.system()`, Python `major.minor`, versions of numpy, pandas, scipy, scikit-learn) is
-  stored in each golden file's metadata. Before the ruleset is enabled, the CI job is run
-  several times (≥ 3, on different days) to confirm bit-exact stability; if it is not stable,
+  stored in each golden file's metadata. The reference fingerprint itself is a constant in
+  `tests/characterization/compare.py` (`REFERENCE_FINGERPRINT`): `Linux`, `x86_64`, Python
+  `3.10`, and the numpy, pandas, scipy and scikit-learn versions read from the pins in
+  `requirements.txt`, so it exists before any golden file does. Before the ruleset is enabled, the CI job is run
+  several times (≥ 3 runs; re-runs on new runners count) to confirm bit-exact stability; if it is not stable,
   set `OPENBLAS_CORETYPE` to a fixed kernel (e.g., `Haswell`) in both generation and check, and
   regenerate.
 - **Rationale**: FR-005, FR-009, clarification Q1. BFGS with a fixed initial guess is
@@ -76,8 +79,8 @@ and the code in `src/` as of `255ac0e`.
   reaches `main`; keeping the commit manual preserves review and the "no push without approval"
   rule.
 - **Side effect**: on the push that carries `[regenerate-golden]` before any golden file exists,
-  the `characterization` job also runs and fails (no references yet). This is expected on the
-  feature branch and disappears once the generated files are committed.
+  the `characterization` job also runs and fails (no golden files exist yet). This is expected
+  on the feature branch and disappears once the generated files are committed.
 - **Alternatives considered**: `workflow_dispatch` only (not executable before the merge);
   WSL or Docker on the development machine (viable fallback; the fingerprint check accepts it if
   it matches); CI committing directly (rejected: bypasses review).
@@ -110,6 +113,13 @@ and the code in `src/` as of `255ac0e`.
   - **Check after setting**: the SC-003 perturbations (0.001 in a disaggregation coefficient,
     the BFGS initial guess, a statistical-table value) must still fail in tolerant mode. If a
     tolerance would hide one of them, it is too loose — report it, do not silently widen.
+  - **SC-003 is tested in tolerant mode only.** Exact mode compares numbers with `==`, so any
+    bit change fails by construction; the 1-ulp unit test of the comparator
+    (`tests/unit/test_compare.py`) proves it. Tolerant mode is the only one where a tolerance
+    could hide a perturbation, so it is the one that needs the sensitivity test. Running it in
+    exact mode would also be impossible without committing the perturbation: on the Windows
+    machine exact mode already fails without any change, and the reference environment is the
+    CI.
 - **Rationale**: clarification Q1 and principle I (identical in the same environment; per-field
   tolerance across environments). The factor 10 absorbs run-to-run noise on the development
   machine without approaching the magnitudes SC-003 must detect; it is a planning choice open
@@ -154,8 +164,9 @@ and the code in `src/` as of `255ac0e`.
   The "expected" column is the hypothesis from the spec and the knowledge base; the golden file
   records what the code actually returns. If it differs from the hypothesis, the difference is
   reported to the maintainer, not "fixed". `tests/fixtures/synthetic/README.md` documents each
-  fixture and its backlog item (FR-008). C-01 (D-01) and C-03 (D-07) are covered by the real
-  series' `parameters` and outlier paths; their golden entries carry the markers in metadata.
+  fixture and its backlog item (FR-008). C-01 (D-01) has no per-station marker because it affects every fitted result
+  (documented in the registry comment and in the synthetic README). Among the real series, only
+  `chuvas_C_02346117` carries a marker, for C-03 (D-07).
 - **Rationale**: SC-001 counts 7 categories; S5 and S6 isolate each boundary, S7 is the
   mandatory combined case from the spec.
 - **Alternatives considered**: deriving fixtures by trimming real CSVs (rejected: modifies or
@@ -184,13 +195,21 @@ and the code in `src/` as of `255ac0e`.
 
 ## R-09 — CI and required status check (FR-011)
 
-- **Decision**: `.github/workflows/characterization.yml` with triggers `push` (all branches),
-  `pull_request` (to `main`) and `workflow_dispatch` (inputs `reason`, `series`). Jobs:
-  - `characterization` — on `push` and `pull_request`: runs `pytest` with
-    `CALCULOIDF_COMPARE_MODE=exact`. This is the required status check.
-  - `generate-golden` — on `push` when the head commit message contains `[regenerate-golden]`,
-    and on `workflow_dispatch`: runs `update_golden.py` and uploads `tests/golden/` as an
-    artifact (R-04). Not a required check.
+- **Decision**: `.github/workflows/characterization.yml` with triggers `push` (all branches)
+  and `workflow_dispatch` (inputs `reason`, `series`); no `pull_request` trigger. Jobs:
+  - `characterization` — on `push` to any branch only; not on `pull_request` and not on
+    `workflow_dispatch`, so each commit is checked once: runs `pytest` with
+    `CALCULOIDF_COMPARE_MODE=exact`. This is the required status check. GitHub matches required
+    checks by name on the PR's head SHA, so the push-triggered check on the branch head commit
+    satisfies it; this meets FR-011 and US4 ("every push") as written. The ruleset also requires
+    branches to be up to date before merging, so the tested head equals the merge result. A
+    **draft PR to `main`**, opened by the maintainer before the first golden generation, is the
+    review surface; the stability re-runs of R-03 are re-runs of this job started from it.
+    PRs from forks would not get the push-triggered check and would stay blocked; acceptable
+    for a single-maintainer repository.
+  - `generate-golden` — on `push` to any branch when the head commit message contains
+    `[regenerate-golden]`, and on `workflow_dispatch`: runs `update_golden.py` and uploads
+    `tests/golden/` as an artifact (R-04). Not a required check.
 
   Both jobs share the reference environment setup (`ubuntu-24.04`, Python 3.10, the pins, the
   BLAS thread variables). Actions pinned by major version tag (`actions/checkout@v4`,
@@ -211,13 +230,25 @@ and the code in `src/` as of `255ac0e`.
 
 ## R-11 — Reference changelog (FR-006, SC-005)
 
-- **Decision**: `tests/golden/CHANGELOG.md`, one entry per run of `update_golden.py`: date
-  (UTC), series IDs, changed field paths (computed by diffing old vs new golden), reason,
-  environment fingerprint. The script refuses to run without a non-empty `--reason` and refuses
-  to write when the fingerprint is not the reference one unless `--allow-non-reference` is given
-  (that flag is only for local experiments and writes nothing to the changelog — it outputs to a
-  scratch directory).
-- **Rationale**: US2 acceptance scenarios; SC-005.
+- **Decision**: `tests/golden/CHANGELOG.md`, one entry per run of `update_golden.py` that
+  changes at least one golden file: date (UTC), series IDs, reason, environment fingerprint,
+  trigger, a Markdown table with one row per changed series (series id, number of changed
+  leaves, max absolute delta, max relative delta) and the changed field paths (computed by
+  diffing old vs new golden). The script prints the same table, ready to paste into the PR
+  description.
+  - A golden file is rewritten only when `result_kind`, `result`, `metadata.input_sha256` or
+    `metadata.marker` change; `generated_at` (or `environment`) alone does not count, and an
+    unchanged file is left byte-for-byte. A regeneration of every series therefore touches only
+    the series whose content changed.
+  - The script refuses to run without a non-empty `--reason` and refuses to write when the
+    current fingerprint does not match `REFERENCE_FINGERPRINT` (R-03) unless
+    `--allow-non-reference` is given (that flag is only for local experiments and writes
+    nothing to the changelog — it outputs to a scratch directory).
+  - For its unit tests, the golden root and the reference fingerprint are internal parameters of
+    the script's entry function, injected with `tmp_path` and `monkeypatch`; they are not CLI
+    flags.
+- **Rationale**: US2 acceptance scenarios; SC-005; constitution principle I (the PR shows the
+  table of differences per station).
 
 ## Measurement results (to be filled during implementation)
 

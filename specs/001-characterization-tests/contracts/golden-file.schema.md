@@ -36,3 +36,9 @@ trailing newline. Written only by `scripts/update_golden.py`.
   "note": "<one line>"}`.
 - The `environment` fingerprint used to choose `exact` mode compares `os`, `machine`, Python
   `major.minor` and the four library versions.
+- `NaN`, `Infinity` and `-Infinity` are accepted in `result`: they are written as the tokens
+  Python's `json` module emits (`NaN`, `Infinity`, `-Infinity`), which it reads back exactly.
+  The file is therefore JSON as Python reads it, not strict RFC 8259 JSON.
+- `generated_at` is the time of the last **content** change. A file is rewritten only when
+  `result_kind`, `result`, `metadata.input_sha256` or `metadata.marker` change; a regeneration
+  that would change only `generated_at` (or `environment`) leaves the file byte-for-byte.

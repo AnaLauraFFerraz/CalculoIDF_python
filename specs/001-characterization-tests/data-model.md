@@ -54,6 +54,7 @@ hand.
 |---|---|
 | Date (UTC) | Required |
 | Series IDs | Required, ≥ 1 |
+| Per changed series: number of changed leaves, max absolute delta, max relative delta | Computed by the script; a Markdown table, one row per series, that can be pasted into the PR (constitution principle I) |
 | Changed field paths (or "initial generation") | Computed by the script, not typed |
 | Reason | Required, non-empty (FR-006); the script refuses otherwise |
 | Environment fingerprint | Required |
