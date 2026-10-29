@@ -2,7 +2,7 @@
 
 **Branch**: `001-characterization-tests` | **Date**: 2026-10-29 | **Spec**: [spec.md](spec.md)
 
-**Status**: Draft
+**Status**: Approved (2026-10-29)
 
 **Input**: Feature specification from `specs/001-characterization-tests/spec.md`; technical notes
 from `docs/knowledge/07-technical-notes-by-feature.md`, section "001 — Characterization tests".
