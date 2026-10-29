@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-29
 
-**Status**: Draft
+**Status**: Approved (2026-10-29)
 
 **Input**: User description: "Freeze the current behavior of the IDF computation on real Hidroweb
 series, so that any future change that alters results is detected before it reaches the user."
