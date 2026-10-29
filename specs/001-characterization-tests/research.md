@@ -121,33 +121,73 @@ and the code in `src/` as of `255ac0e`.
     by field-path pattern. An environment variable `CALCULOIDF_COMPARE_MODE=exact|tolerant`
     overrides the automatic choice (CI sets `exact` explicitly, so a fingerprint mismatch in
     CI fails instead of silently relaxing).
-  - Field groups in the tolerance file (at minimum): `parameters.**` (k, m, c, n — least
-    stable, D-01), `intensity_graph_data_*.i_calculated`, `intensity_graph_data_*.regression.*`,
-    `mean_relative_errors.*`, `ns.*`, `graph_data.*`, and a default.
+  - Field groups in the tolerance file and their rule kind (amended 2026-10-29, ADR 0003).
+    **Post-fit** groups — `parameters.**` (k, m, c, n — least stable, D-01),
+    `intensity_graph_data_*.i_calculated[*]`, `intensity_graph_data_*.regression.*`,
+    `mean_relative_errors.*`, `ns.*` — use the `structure` rule: types, keys, list lengths and
+    NaN-ness are compared, values are not, with D-01 as the recorded reason. **Pre-fit** groups —
+    `graph_data.**` and the default `**` (which includes `i_real`) — use numeric tolerances. In
+    `exact` mode the rule kinds are ignored and every number is compared with `==`.
   - **Setting the values (measurement task, FR-002)**: run `scripts/measure_env_diff.py` on the
     Windows machine (Python 3.10 via `uv`, same pins) against the reference golden files of the
     13 CSVs. For each field group, record max |Δ| and max |Δ|/|expected| per station in a
     table appended to this file ("Measurement results", to be filled during implementation).
-    Tolerance per group = measured maximum × 10, rounded up to one significant digit, with a
-    floor of `rel 1e-12`; if the measured difference of a group is exactly zero, use the floor.
-    The tolerance file records the measurement date, both fingerprints and the safety factor.
-  - **Check after setting**: the SC-003 perturbations (0.001 in a disaggregation coefficient,
-    the BFGS initial guess, a statistical-table value) must still fail in tolerant mode. If a
-    tolerance would hide one of them, it is too loose — report it, do not silently widen.
-  - **SC-003 is tested in tolerant mode only.** Exact mode compares numbers with `==`, so any
-    bit change fails by construction; the 1-ulp unit test of the comparator
-    (`tests/unit/test_compare.py`) proves it. Tolerant mode is the only one where a tolerance
-    could hide a perturbation, so it is the one that needs the sensitivity test. Running it in
-    exact mode would also be impossible without committing the perturbation: on the Windows
-    machine exact mode already fails without any change, and the reference environment is the
-    CI.
+    Numeric tolerance per **pre-fit** group = measured maximum × 10, rounded up to one
+    significant digit, with a floor of `rel 1e-12`; if the measured difference of a group is
+    exactly zero, use the floor. The measurement (T017, 2026-10-29, "Measurement results" below)
+    showed that the same rule applied to the post-fit groups would give relative tolerances of
+    about 2 (`parameters.**`), 0.2 (`i_calculated`), 40 (`regression.*`), 0.3
+    (`mean_relative_errors.*`) and 7e-3 (`ns.*`), which cannot detect the SC-003 perturbations;
+    those groups use the `structure` rule instead (ADR 0003). The tolerance file records the
+    measurement date, both fingerprints, the safety factor and, for every rule, the measured
+    maxima.
+  - **Check after setting (amended 2026-10-29)**: each SC-003 perturbation (0.001 in a
+    disaggregation coefficient, in the BFGS initial guess, in a statistical constant) is verified
+    in the mode that can see it, according to the field groups it reaches (read from `src/`). If
+    a numeric tolerance would hide one that reaches a pre-fit group, it is too loose — report it,
+    do not silently widen. Exact mode compares numbers with `==`, so any bit change fails by
+    construction (the 1-ulp unit test of the comparator, `tests/unit/test_compare.py`, proves
+    it); a perturbation that reaches post-fit groups only cannot fail in tolerant mode, so it is
+    verified in exact mode in a reference-equivalent Linux environment (fingerprint match: Linux
+    x86-64, Python 3.10.x, the pins and the pinned kernels, e.g. a VM or WSL), without
+    committing the perturbation.
+    - (a) a disaggregation coefficient (`disaggregation_coef.py:27-42`) → `ventechow.py:25,30` →
+      `i_real` (`ventechow.py:41`, group `**`, pre-fit) and, because `i_real` is the fit target
+      (`ventechow.py:116,143`), every post-fit group. `graph_data` is not reached
+      (`ventechow.py:236-240` is built from the distribution data only). Verified in **tolerant**
+      mode.
+    - (b) the BFGS initial guess (`ventechow.py:8`, used at `:102`; the call at `:204` is
+      overwritten at `:114` and `:122`) → `parameters`, `i_calculated`, `regression`,
+      `mean_relative_errors`, `ns` only; `i_real` and `graph_data` are computed before the fit.
+      Verified in **exact** mode, reference-equivalent environment.
+    - (c) a statistical constant. Values in `yn_sigman.py` are not reachable: they enter
+      `params["yn"]` and `params["sigman"]` (`distributions.py:37-38`) and are used only by the
+      finite Gumbel (`distributions.py:112-113`, `k_coefficient.py:57-59`); Pearson's r
+      (`distributions.py:115`) is invariant to that affine map and equals the theoretical Gumbel's
+      r² (`distributions.py:98-107`), the tie at `distributions.py:143` resolves to
+      `gumbel_theoretical` (first key, `:139-140`), and no golden file has `"dist": "Gumbel
+      Finita"`. Values in `grubbs_test.py` are threshold-gated (`outlier_test.py:40,72,82`): a
+      0.001 change matters only if a sample's statistic lies within 0.001 of the critical value
+      of its sample size, which reading cannot decide. T036 (c) therefore perturbs a constant
+      that always propagates for the chosen distribution: the theoretical Gumbel coefficient
+      `0.7797` (`distributions.py:99`, `k_coefficient.py:50`), on a series whose chosen
+      distribution is `Gumbel Teórica` (`chuvas_C_01844000_CV`, `chuvas_C_01844000_CV1`,
+      `chuvas_C_01944009_PL`). It reaches `graph_data.P_dist` (`ventechow.py:239`) and `k` →
+      `idf_data["1day"]` (`ventechow.py:22-23`) → `i_real` and every post-fit group. Verified in
+      **tolerant** mode. SC-003 (amended 2026-10-29, ADR 0003) names this kind of change, a constant
+      of a candidate distribution, and leaves out statistical-table values that cannot change the
+      output.
 - **Rationale**: clarification Q1 and principle I (identical in the same environment; per-field
   tolerance across environments). The factor 10 absorbs run-to-run noise on the development
   machine without approaching the magnitudes SC-003 must detect; it is a planning choice open
-  to review.
+  to review. (Amended 2026-10-29: this holds for the pre-fit fields only; for the post-fit
+  fields the measured differences make the factor-10 values larger than the magnitudes SC-003
+  must detect, see ADR 0003.)
 - **Alternatives considered**: a single global tolerance (rejected: D-01 makes `k, m, c, n`
   move far more than intensities); fixed guessed values (rejected by Q1: values come from
-  measurement).
+  measurement). Rejected after the measurement of 2026-10-29: the literal factor-10 rule for the
+  post-fit groups, per-series tolerances, and no cross-environment comparison at all; see
+  ADR 0003 (`docs/adr/0003-cross-environment-comparison-of-ill-conditioned-outputs.md`).
 
 ## R-06 — Synthetic fixtures (US3, FR-007)
 
@@ -285,8 +325,118 @@ and the code in `src/` as of `255ac0e`.
 - **Rationale**: US2 acceptance scenarios; SC-005; constitution principle I (the PR shows the
   table of differences per station).
 
-## Measurement results (to be filled during implementation)
+## Measurement results
 
-| Field group | Station | max abs Δ | max rel Δ |
-|---|---|---|---|
-| _pending — measurement task, phase 3_ | | | |
+Task T017, measured on 2026-10-29 with `scripts/measure_env_diff.py` (the golden files compared
+with a run in the current environment, without tolerances). The golden files come from CI run
+40916698777.
+
+- **Golden (reference) environment**: `os=Linux`, `machine=x86_64`, `python=3.10.22`,
+  `numpy=1.24.3`, `pandas=2.0.1`, `scipy=1.10.1`, `scikit-learn=1.3.0`,
+  `OPENBLAS_CORETYPE=Haswell`,
+  `NPY_DISABLE_CPU_FEATURES=AVX512F,AVX512CD,AVX512_SKX,AVX512_CLX,AVX512_CNL,AVX512_ICL`.
+- **Measured environment**: `os=Windows`, `machine=AMD64`, `python=3.10.22`, `numpy=1.24.3`,
+  `pandas=2.0.1`, `scipy=1.10.1`, `scikit-learn=1.3.0`, the same two kernel variables. The `.venv`
+  matches the 43 pins of `requirements.txt`.
+- The two series that end in the insufficient-data message (`chuvas_C_01848001_UB`,
+  `chuvas_C_02043032_MA`) have no numeric leaves and match. No non-numeric difference was
+  found in any series.
+- An independent script on another CPU (Intel i7-9750H, Linux VM) with the pinned kernels
+  reproduced all 13 golden files exactly (maintainer's cross-check, 2026-10-29).
+
+### Per field group and series
+
+| Field group | Series | Numeric leaves | Differing leaves | Max abs Δ | Max rel Δ |
+|---|---|---|---|---|---|
+| `parameters.**` | chuvas_C_01844000_CV | 8 | 3 | 2.205e-01 | 9.464e-04 |
+| `parameters.**` | chuvas_C_01844000_CV1 | 8 | 4 | 8.799e+00 | 1.946e-02 |
+| `parameters.**` | chuvas_C_01943011 | 8 | 6 | 3.356e-01 | 8.003e-04 |
+| `parameters.**` | chuvas_C_01944009_PL | 8 | 2 | 7.230e-02 | 6.028e-04 |
+| `parameters.**` | chuvas_C_02040003_FFL | 8 | 4 | 2.033e+00 | 5.650e-03 |
+| `parameters.**` | chuvas_C_02040022 | 8 | 8 | 4.141e+00 | 1.913e-02 |
+| `parameters.**` | chuvas_C_02043011_FAZ_P | 8 | 8 | 5.149e+01 | 1.737e-01 |
+| `parameters.**` | chuvas_C_02243077_HF_RIO | 8 | 8 | 7.545e+01 | 1.582e-01 |
+| `parameters.**` | chuvas_C_02243155 | 8 | 8 | 1.760e+01 | 4.843e-02 |
+| `parameters.**` | chuvas_C_02346117 | 8 | 6 | 5.840e-02 | 8.015e-03 |
+| `parameters.**` | chuvas_C_02346328 | 8 | 6 | 2.554e+01 | 1.795e-01 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_01844000_CV | 120 | 64 | 1.099e-02 | 2.958e-04 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_01844000_CV1 | 120 | 64 | 1.331e-01 | 4.089e-03 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_01943011 | 120 | 120 | 5.251e-02 | 6.782e-04 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_01944009_PL | 120 | 56 | 7.210e-02 | 3.163e-04 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_02040003_FFL | 120 | 64 | 6.790e-02 | 1.040e-03 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_02040022 | 120 | 120 | 3.243e-01 | 2.909e-03 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_02043011_FAZ_P | 120 | 120 | 1.375e+00 | 1.169e-02 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_02243077_HF_RIO | 120 | 120 | 9.583e-01 | 1.698e-02 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_02243155 | 120 | 120 | 3.883e-01 | 4.993e-03 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_02346117 | 120 | 120 | 2.433e-01 | 5.561e-04 |
+| `intensity_graph_data_*.i_calculated[*]` | chuvas_C_02346328 | 120 | 120 | 5.576e-01 | 1.175e-02 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_01844000_CV | 4 | 2 | 5.817e-05 | 1.164e-03 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_01844000_CV1 | 4 | 2 | 1.316e-02 | 6.397e-02 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_01943011 | 4 | 4 | 3.322e-02 | 3.447e-02 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_01944009_PL | 4 | 4 | 1.910e-02 | 1.146e-02 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_02040003_FFL | 4 | 2 | 1.589e-03 | 6.214e-03 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_02040022 | 4 | 4 | 1.561e-01 | 5.385e-02 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_02043011_FAZ_P | 4 | 4 | 8.788e-02 | 3.252e-01 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_02243077_HF_RIO | 4 | 4 | 4.213e-01 | 4.289e-01 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_02243155 | 4 | 4 | 8.992e-02 | 2.411e-01 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_02346117 | 4 | 4 | 2.340e-02 | 3.059e-02 |
+| `intensity_graph_data_*.regression.*` | chuvas_C_02346328 | 4 | 4 | 1.160e-01 | 3.482e+00 |
+| `mean_relative_errors.*` | chuvas_C_01844000_CV | 2 | 1 | 4.780e-05 | 1.978e-05 |
+| `mean_relative_errors.*` | chuvas_C_01844000_CV1 | 2 | 1 | 2.830e-03 | 1.130e-03 |
+| `mean_relative_errors.*` | chuvas_C_01943011 | 2 | 2 | 1.510e-04 | 9.054e-05 |
+| `mean_relative_errors.*` | chuvas_C_01944009_PL | 2 | 1 | 4.588e-04 | 1.740e-04 |
+| `mean_relative_errors.*` | chuvas_C_02040003_FFL | 2 | 1 | 1.075e-03 | 2.070e-04 |
+| `mean_relative_errors.*` | chuvas_C_02040022 | 2 | 2 | 3.015e-03 | 9.410e-04 |
+| `mean_relative_errors.*` | chuvas_C_02043011_FAZ_P | 2 | 2 | 8.688e-02 | 2.919e-02 |
+| `mean_relative_errors.*` | chuvas_C_02243077_HF_RIO | 2 | 2 | 1.415e-02 | 4.942e-03 |
+| `mean_relative_errors.*` | chuvas_C_02243155 | 2 | 2 | 2.187e-03 | 5.180e-04 |
+| `mean_relative_errors.*` | chuvas_C_02346117 | 2 | 2 | 5.600e-04 | 1.781e-04 |
+| `mean_relative_errors.*` | chuvas_C_02346328 | 2 | 2 | 1.400e-03 | 5.782e-04 |
+| `ns.*` | chuvas_C_01844000_CV | 2 | 1 | 1.532e-06 | 1.535e-06 |
+| `ns.*` | chuvas_C_01844000_CV1 | 2 | 1 | 5.422e-05 | 5.432e-05 |
+| `ns.*` | chuvas_C_01943011 | 2 | 2 | 1.984e-05 | 1.990e-05 |
+| `ns.*` | chuvas_C_01944009_PL | 2 | 1 | 8.929e-06 | 8.984e-06 |
+| `ns.*` | chuvas_C_02040003_FFL | 2 | 1 | 9.763e-06 | 9.823e-06 |
+| `ns.*` | chuvas_C_02040022 | 2 | 2 | 1.778e-05 | 1.798e-05 |
+| `ns.*` | chuvas_C_02043011_FAZ_P | 2 | 2 | 6.826e-04 | 6.896e-04 |
+| `ns.*` | chuvas_C_02243077_HF_RIO | 2 | 2 | 1.170e-04 | 1.177e-04 |
+| `ns.*` | chuvas_C_02243155 | 2 | 2 | 7.901e-05 | 7.930e-05 |
+| `ns.*` | chuvas_C_02346117 | 2 | 2 | 2.655e-05 | 2.661e-05 |
+| `ns.*` | chuvas_C_02346328 | 2 | 2 | 1.196e-04 | 1.198e-04 |
+| `graph_data.**` | chuvas_C_01844000_CV | 99 | 0 | 0 | 0 |
+| `graph_data.**` | chuvas_C_01844000_CV1 | 93 | 0 | 0 | 0 |
+| `graph_data.**` | chuvas_C_01943011 | 90 | 13 | 9.948e-14 | 9.729e-16 |
+| `graph_data.**` | chuvas_C_01944009_PL | 192 | 0 | 0 | 0 |
+| `graph_data.**` | chuvas_C_02040003_FFL | 108 | 12 | 1.705e-13 | 1.109e-15 |
+| `graph_data.**` | chuvas_C_02040022 | 96 | 0 | 0 | 0 |
+| `graph_data.**` | chuvas_C_02043011_FAZ_P | 192 | 3 | 2.842e-14 | 6.495e-16 |
+| `graph_data.**` | chuvas_C_02243077_HF_RIO | 39 | 0 | 0 | 0 |
+| `graph_data.**` | chuvas_C_02243155 | 66 | 1 | 2.842e-14 | 5.304e-16 |
+| `graph_data.**` | chuvas_C_02346117 | 159 | 43 | 9.948e-13 | 6.131e-15 |
+| `graph_data.**` | chuvas_C_02346328 | 57 | 16 | 1.847e-13 | 2.743e-15 |
+| `**` | chuvas_C_01844000_CV | 120 | 0 | 0 | 0 |
+| `**` | chuvas_C_01844000_CV1 | 120 | 0 | 0 | 0 |
+| `**` | chuvas_C_01943011 | 120 | 45 | 1.990e-13 | 1.199e-15 |
+| `**` | chuvas_C_01944009_PL | 120 | 0 | 0 | 0 |
+| `**` | chuvas_C_02040003_FFL | 121 | 0 | 0 | 0 |
+| `**` | chuvas_C_02040022 | 120 | 0 | 0 | 0 |
+| `**` | chuvas_C_02043011_FAZ_P | 120 | 0 | 0 | 0 |
+| `**` | chuvas_C_02243077_HF_RIO | 120 | 0 | 0 | 0 |
+| `**` | chuvas_C_02243155 | 126 | 15 | 2.842e-13 | 1.140e-15 |
+| `**` | chuvas_C_02346117 | 120 | 120 | 6.821e-13 | 2.169e-15 |
+| `**` | chuvas_C_02346328 | 127 | 0 | 0 | 0 |
+
+### Maximum per field group (all series)
+
+| Field group | Numeric leaves | Differing leaves | Max abs Δ | Max rel Δ |
+|---|---|---|---|---|
+| `parameters.**` | 88 | 63 | 7.545e+01 | 1.795e-01 |
+| `intensity_graph_data_*.i_calculated[*]` | 1320 | 1088 | 1.375e+00 | 1.698e-02 |
+| `intensity_graph_data_*.regression.*` | 44 | 38 | 4.213e-01 | 3.482e+00 |
+| `mean_relative_errors.*` | 22 | 18 | 8.688e-02 | 2.919e-02 |
+| `ns.*` | 22 | 18 | 6.826e-04 | 6.896e-04 |
+| `graph_data.**` | 1191 | 88 | 9.948e-13 | 6.131e-15 |
+| `**` | 1334 | 180 | 6.821e-13 | 2.169e-15 |
+
+Reading: the pre-fit groups differ by rounding noise only; every non-trivial difference is in
+the post-fit groups. Decision and consequences: ADR 0003.

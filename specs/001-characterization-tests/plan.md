@@ -4,7 +4,7 @@
 
 **Status**: Approved (2026-10-29)
 
-**Amended**: 2026-10-29 — CI trigger aligned after /speckit-analyze (A1): `characterization` runs on push only; the required check is satisfied on the head SHA; CPU kernels pinned from the start (R-03).
+**Amended**: 2026-10-29 — CI trigger aligned after /speckit-analyze (A1): `characterization` runs on push only; the required check is satisfied on the head SHA; CPU kernels pinned from the start (R-03); cross-environment rule for post-fit fields changed to structure-only, pre-fit fields keep numeric tolerances (R-05, ADR 0003, after the T017 measurement of 2026-10-29).
 
 **Input**: Feature specification from `specs/001-characterization-tests/spec.md`; technical notes
 from `docs/knowledge/07-technical-notes-by-feature.md`, section "001 — Characterization tests".
@@ -15,11 +15,12 @@ Freeze the current output of `main.main(csv_path)` for the 13 real Hidroweb CSVs
 synthetic edge-case series, as golden files generated in a **reference environment equal to
 production** (Linux, Python 3.10, the pins in `requirements.txt`). A pytest suite reruns the
 pipeline and compares the full output recursively: **bit-for-bit** in the reference environment
-(the CI job), **per-field tolerances** anywhere else (e.g., the Windows development machine).
-The tolerance values come from an explicit measurement of the Windows-vs-reference differences
-on the 13 CSVs. A script regenerates golden files only with a recorded reason and appends to a
-versioned changelog. A GitHub Actions workflow runs the suite on every push; a
-repository ruleset (manual step) makes it a required status check on `main`. Production code is
+(the CI job), **per-field rules** anywhere else (e.g., the Windows development machine):
+numeric tolerances for the pre-fit fields and, for the post-fit fields, a structure-only rule
+(types, keys, list lengths and NaN-ness; ADR 0003). The tolerance values come from an explicit
+measurement of the Windows-vs-reference differences on the 13 CSVs. A script regenerates golden
+files only with a recorded reason and appends to a versioned changelog. A GitHub Actions
+workflow runs the suite on every push; a repository ruleset (manual step) makes it a required status check on `main`. Production code is
 not touched: the import-time `storage.Client()` is neutralized by a test-side stub of
 `google.cloud.storage`.
 
@@ -58,7 +59,7 @@ FR-007 (research R-06); one output object per series (~a few hundred numeric lea
 
 | Principle | Assessment | Status |
 |---|---|---|
-| I. Numerical correctness | The feature exists to enforce it: exact equality in the reference environment, per-field tolerances elsewhere (wording of principle I v1.0.0), deliberate regeneration with recorded reason. | PASS |
+| I. Numerical correctness | The feature exists to enforce it: exact equality in the reference environment, per-field rules elsewhere (numeric tolerances pre-fit, structure-only post-fit with a recorded reason; wording of principle I v1.0.0 and the counter-argument in ADR 0003), deliberate regeneration with recorded reason. | PASS (see ADR 0003) |
 | II. Characterize before restructuring | Golden files freeze current behavior, including D-02 (C-02) and the D-13 path, marked as known/suspected defects. No restructuring in this feature. | PASS |
 | III. Methodological transparency | Not affected: no change to user-facing output. | N/A |
 | IV. AI interprets, never computes | No AI feature. | N/A |
@@ -142,8 +143,9 @@ golden-file inputs).
 3. **Measurement task (FR-002)** — on the Windows development machine (Python 3.10 via `uv`),
    run `scripts/measure_env_diff.py` against the golden files of the 13 CSVs; record the
    per-field maximum absolute and relative differences in `research.md` (table per field group
-   and per station); set `tests/golden/tolerances.json` from that measurement (rule in R-05);
-   confirm that the tolerances still detect the SC-003 perturbations.
+   and per station); set `tests/golden/tolerances.json` from that measurement (rule in R-05:
+   numeric tolerances for pre-fit groups, `structure` rules for post-fit groups, ADR 0003);
+   verify the SC-003 perturbations in the mode that can see each one (R-05, task T036).
 4. **Synthetic fixtures (US3)** — generate the 8 CSVs, generate their golden files in the
    reference environment, mark known/suspected defects (D-02/C-02, D-13).
 5. **Deliberate update path (US2)** — `update_golden.py` refusal without reason, changelog

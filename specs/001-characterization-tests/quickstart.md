@@ -29,10 +29,12 @@ network access attempted. In CI the same command runs in `exact` mode.
 ## Scenario 2 — A numeric change is detected (US1 scenario 2, SC-003)
 
 Change one disaggregation coefficient in `src/disaggregation_coef.py` by 0.001 (local, not
-committed) and rerun. Expected: failures listing series, field path, expected and actual
-values. Revert. Repeat once for the BFGS initial guess in `src/ventechow.py` and once for a value
-of the statistical tables (`src/yn_sigman.py` or `src/grubbs_test.py`). Record the outcome of the
-three perturbations once, in `research.md`.
+committed) and rerun in tolerant mode. Expected: failures listing series, field path, expected
+and actual values. Revert. Repeat for the theoretical Gumbel coefficient `0.7797`
+(`src/distributions.py:99`, series `chuvas_C_01944009_PL`) in tolerant mode, and for the BFGS
+initial guess in `src/ventechow.py` in **exact** mode in a reference-equivalent Linux
+environment, because it reaches post-fit fields only, which tolerant mode compares by structure
+(research R-05, ADR 0003). Record the outcome of the three perturbations once, in `research.md`.
 
 ## Scenario 3 — Regeneration requires a reason (US2)
 
@@ -79,8 +81,9 @@ expectations in research R-06 (differences from the hypothesis are reported, not
 ```
 
 Expected: a per-field-group, per-station table of differences between Windows and the reference
-golden files. Its maxima, times the safety factor, are the values in
-`tests/golden/tolerances.json`; Scenario 2 still fails with those tolerances.
+golden files. For the pre-fit groups its maxima, times the safety factor, are the numeric
+tolerances in `tests/golden/tolerances.json`; the post-fit groups are `structure` rules (ADR
+0003); Scenario 2 still fails with those rules.
 
 ## Scenario 6 — Automatic protection (US4, FR-011)
 

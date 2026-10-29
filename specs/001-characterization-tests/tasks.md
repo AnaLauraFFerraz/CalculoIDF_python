@@ -79,7 +79,8 @@ Single project. Tests in `tests/`, maintenance scripts in `scripts/`, workflow i
   - `load_golden()`;
   - `compare(expected, actual, mode, tolerances)` recursive per R-05: exact key sets, list length
     and order, **types** (`bool` ≠ number, `false` ≠ list, strings stay strings), `NaN == NaN`,
-    `==` in `exact`, `math.isclose` with the first matching rule in `tolerant`; returns diffs as
+    `==` in `exact`, `math.isclose` with the first matching rule in `tolerant` (the `structure`
+    rule kind of ADR 0003 is added in T018); returns diffs as
     `(path, expected, actual, rule)`;
   - mode selection via `CALCULOIDF_COMPARE_MODE` (`exact`|`tolerant`) else fingerprint match; in
     `tolerant` mode refuse to run with a clear error while any rule in `tolerances.json` has a
@@ -155,16 +156,16 @@ coefficient by 0.001 makes it fail with series id, field path, expected and actu
   1973 — all through the lower bound); its marker is `{status: "suspected", debt: "D-07", fix:
   "C-03", note: "4 low outliers removed without recomputing the statistics"}`. Every other
   real series: marker `null`.
-- [ ] T013 [MANUAL] [US1] Maintainer approves the push of the branch and opens a **draft PR** to
+- [X] T013 [MANUAL] [US1] Maintainer approves the push of the branch and opens a **draft PR** to
   `main`. The PR is the review surface: it shows the `characterization` check that every push
   to the branch triggers on its head commit (R-09), and the stability re-runs of T020 happen
   from it.
-- [ ] T014 [MANUAL] [US1] Maintainer approves and pushes a final **empty** commit
+- [X] T014 [MANUAL] [US1] Maintainer approves and pushes a final **empty** commit
   (`git commit --allow-empty`) whose subject contains `[regenerate-golden]` and whose body is the
   reason `initial characterization` (plan M-2). Expected: `generate-golden` runs and uploads
   `golden-<run id>`; the `characterization` job triggered by the same push fails (no golden
   files exist yet) — expected, not a bug (R-04).
-- [ ] T015 [MANUAL] [US1] Maintainer downloads the artifact
+- [X] T015 [MANUAL] [US1] Maintainer downloads the artifact
   (`gh run download <run-id> -n golden-<run-id>`). Claude reviews the 13
   `tests/golden/real/*.json` files and the changelog entry (fingerprint is Linux / x86_64 /
   Python 3.10 / pinned versions; the two insufficient-data series have `result_kind:
@@ -175,19 +176,29 @@ coefficient by 0.001 makes it fail with series id, field path, expected and actu
   relative difference, number of differing leaves, and any non-numeric difference (reported as a
   failure, not a tolerance matter); `--series`, `--out report.md`; writes nothing under
   `tests/golden/`.
-- [ ] T017 [US1] Run the measurement on the Windows machine (`.venv`, Python 3.10, same pins):
+- [X] T017 [US1] Run the measurement on the Windows machine (`.venv`, Python 3.10, same pins):
   `.venv\Scripts\python scripts/measure_env_diff.py --out $env:TEMP\measure.md`. Paste the
   table (field group × series: max abs Δ, max rel Δ) into `research.md` under "Measurement
   results", replacing the pending row, with date and both fingerprints.
-- [ ] T018 [US1] Fill `tests/golden/tolerances.json` from T017 by the rule in R-05: per group,
-  measured maximum × 10 rounded **up** to one significant digit, floor `rel 1e-12`; if the
-  measured difference is exactly zero use the floor. Record `measured_at`,
+- [ ] T018 [US1] Amended 2026-10-29 (ADR 0003, R-05): two parts.
+  (a) Extend the comparator for the `structure` rule kind of `contracts/tolerances.schema.md`
+  (`compare.py`: types, keys, list lengths and NaN-ness compared, values not; `exact` mode
+  ignores the kind; tolerant mode refuses a structure rule with a missing or empty `reason` as
+  it refuses `null` tolerances) with unit tests in `tests/unit/test_compare.py`.
+  (b) Fill `tests/golden/tolerances.json` from T017: the five **post-fit** groups
+  (`parameters.**`, `intensity_graph_data_*.i_calculated[*]`,
+  `intensity_graph_data_*.regression.*`, `mean_relative_errors.*`, `ns.*`) become `structure`
+  rules with reason "D-01: ..." naming the fit as the source of the cross-environment
+  differences; the two **pre-fit** groups (`graph_data.**`, `**`) get numeric tolerances by the
+  R-05 rule — measured maximum × 10 rounded **up** to one significant digit, floor `rel 1e-12`;
+  if the measured difference is exactly zero use the floor. Record `measured_at`,
   `reference_environment`, `measured_environment`, `safety_factor` and each rule's
-  `measured_max_abs` / `measured_max_rel`. If a group has a non-numeric difference, stop and
-  report it.
+  `measured_max_abs` / `measured_max_rel` (structure rules included). If a group has a
+  non-numeric difference, stop and report it.
 - [ ] T019 [US1] Run `.venv\Scripts\python -m pytest` on Windows (tolerant mode): all 13 real
   series pass, total under 60 s (SC-002). Run it twice and confirm identical outcome (FR-005).
-  Commit tolerances and research table as `test: set per-field tolerances from measurement`.
+  Commit the tolerances as `test: set per-field tolerances from measurement` (the research
+  table was committed with T017).
 - [ ] T020 [MANUAL] [US1] Verify stability before relying on exact mode (R-03): the
   `characterization` job must pass in exact mode on at least 3 runs; re-runs on new runners
   count. The runs are re-runs of the push-triggered job on the branch head, started from the
@@ -315,14 +326,21 @@ be merged.
 
 ## Phase 7: Polish & verification
 
-- [ ] T036 SC-003 sensitivity test, once, manually, in **tolerant mode only** (justification in
-  research R-05: exact mode compares with `==`, so any bit change fails by construction, as the
-  1-ulp unit test of T006 proves). Perturb by 0.001 (a) a disaggregation coefficient in
-  `src/disaggregation_coef.py`, (b) the BFGS initial guess in `src/ventechow.py`, (c) a value in
-  `src/yn_sigman.py` or `src/grubbs_test.py`; confirm the suite fails each time with series id,
-  path, expected and actual; **revert each perturbation** and run
-  `git diff --exit-code -- src/` (must exit 0) **before starting the next one**. Perturbations
-  are never committed. If a tolerance hides a perturbation, report it — do not widen it silently
+- [ ] T036 SC-003 sensitivity test, once, manually. Amended 2026-10-29 (ADR 0003, R-05): each
+  perturbation is verified in the mode that can see it, by the field groups it reaches (R-05
+  gives the `src/` evidence). Perturb by 0.001 (a) a disaggregation coefficient in
+  `src/disaggregation_coef.py` — reaches `i_real` (pre-fit) and the post-fit groups — in
+  **tolerant mode** (Windows); (b) the BFGS initial guess in `src/ventechow.py` — reaches
+  post-fit groups only — in **exact mode in a reference-equivalent Linux environment** (VM or
+  WSL, fingerprint match), since tolerant mode cannot see it by design; (c) the theoretical
+  Gumbel coefficient `0.7797` in `src/distributions.py:99` (and `src/k_coefficient.py:50`) on a
+  series whose chosen distribution is Gumbel Teórica (`chuvas_C_01944009_PL`) — reaches
+  `graph_data.P_dist`, `i_real` and the post-fit groups — in **tolerant mode**; a value of
+  `src/yn_sigman.py` is unreachable and one of `src/grubbs_test.py` is threshold-gated (R-05),
+  so they are not used. Confirm the suite fails each time with series id, path, expected and
+  actual; **revert each perturbation** and run `git diff --exit-code -- src/` (must exit 0)
+  **before starting the next one**. Perturbations are never committed. If a numeric tolerance
+  hides a perturbation that reaches a pre-fit group, report it — do not widen it silently
   (R-05). Record the three outcomes in `research.md`.
 - [ ] T037 [P] SC-004 / FR-004: run the suite with the network disabled and no GCP credentials
   (`GOOGLE_APPLICATION_CREDENTIALS` unset); confirm zero network calls (the T004 guard would

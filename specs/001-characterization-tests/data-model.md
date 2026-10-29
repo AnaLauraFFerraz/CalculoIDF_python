@@ -38,13 +38,14 @@ hand.
 
 ## Tolerance set
 
-`tests/golden/tolerances.json`: per-field tolerances used only in `tolerant` mode.
+`tests/golden/tolerances.json`: per-field rules used only in `tolerant` mode — numeric
+tolerances (pre-fit fields) or `structure` rules with a mandatory reason (post-fit fields, ADR 0003).
 
 | Field | Description | Rule |
 |---|---|---|
 | `measured_at`, `reference_environment`, `measured_environment` | Provenance of the measurement | Required |
 | `safety_factor` | Multiplier applied to measured maxima (planned: 10) | Required |
-| `rules[]` | Ordered list of `{pattern, rel_tol, abs_tol, measured_max_abs, measured_max_rel}` | First matching pattern wins; last rule is the default `**` |
+| `rules[]` | Ordered list of `{pattern, rel_tol, abs_tol, measured_max_abs, measured_max_rel}` (numeric) or `{pattern, kind: "structure", reason, measured_max_abs, measured_max_rel}` | First matching pattern wins; last rule is the default `**`; a structure rule needs a non-empty `reason` |
 
 ## Reference change log entry
 
