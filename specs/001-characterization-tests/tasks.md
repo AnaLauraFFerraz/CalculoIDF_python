@@ -199,7 +199,7 @@ coefficient by 0.001 makes it fail with series id, field path, expected and actu
   series pass, total under 60 s (SC-002). Run it twice and confirm identical outcome (FR-005).
   Commit the tolerances as `test: set per-field tolerances from measurement` (the research
   table was committed with T017).
-- [ ] T020 [MANUAL] [US1] Verify stability before relying on exact mode (R-03): the
+- [X] T020 [MANUAL] [US1] Verify stability before relying on exact mode (R-03): the
   `characterization` job must pass in exact mode on at least 3 runs; re-runs on new runners
   count. The runs are re-runs of the push-triggered job on the branch head, started from the
   draft PR of T013. The CPU kernels are already pinned (`OPENBLAS_CORETYPE=Haswell`,

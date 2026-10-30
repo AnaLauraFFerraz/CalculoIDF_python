@@ -440,3 +440,35 @@ with a run in the current environment, without tolerances). The golden files com
 
 Reading: the pre-fit groups differ by rounding noise only; every non-trivial difference is in
 the post-fit groups. Decision and consequences: ADR 0003.
+
+## Stability verification (T020)
+
+The `characterization` job (exact mode, `CALCULOIDF_COMPARE_MODE=exact`, pinned kernels of R-03)
+passed on three runs, each with a different runner name. Data from the GitHub API and the job
+logs.
+
+| Run | Run id | Job id | Head | Runner | CPU model | Conclusion | pytest summary |
+|---|---|---|---|---|---|---|---|
+| 1 | 40947614206 | 123707004679 | `8bdbf60` | GitHub Actions 1000000279 | not logged; no AVX-512 (numpy warning) | success | 61 passed |
+| 2 | 41124734166 | 124300132129 | `2410d69` | GitHub Actions 1000000280 | not logged; no AVX-512 (numpy warning) | success | 113 passed |
+| 3 | 41127421864 | 124309444025 | `7ee0592` | GitHub Actions 1000000281 | AMD EPYC 9V74 80-Core Processor (AVX-512) | success | 113 passed |
+
+- The CPU model is known only for run 3: the step that logs it was added in `7ee0592`. For runs
+  1 and 2 the CPU class comes from numpy, which warns at import when the CPU lacks the features
+  listed in `NPY_DISABLE_CPU_FEATURES`: `RuntimeWarning: During parsing environment variable
+  'NPY_DISABLE_CPU_FEATURES': You cannot disable CPU features (AVX512F AVX512CD AVX512_SKX
+  AVX512_CLX AVX512_CNL AVX512_ICL), since they are not supported by your machine.` The warning
+  appears once in each of jobs 123707004679 and 124300132129 and is absent from job 124309444025.
+- The golden files were generated on a CPU without AVX-512: the same warning appears in the
+  `generate-golden` job (123598723308, runner GitHub Actions 1000000278) of run 40916698777.
+- Run 3's CPU has AVX-512 (`avx512f` present). With `OPENBLAS_CORETYPE=Haswell` and the
+  AVX-512 features disabled in numpy, it runs the same pinned Haswell/AVX2 kernels as the CPUs
+  without AVX-512. Its match with the golden files shows that the pinning works on a CPU where it
+  is needed.
+- Run 1 has fewer tests because its head precedes `b77aaaf` and `2410d69`, which added the
+  unit tests of the `structure` rule and of the tolerance file; the 13 real series
+  (`test_golden.py`) passed in all three runs.
+- Deviation: the three runs are new pushes, each on a new runner, not re-runs from the draft PR
+  as T020 states; the evidence is equivalent.
+- No run differed from the golden files; neither the golden files nor the tolerances were
+  changed.
