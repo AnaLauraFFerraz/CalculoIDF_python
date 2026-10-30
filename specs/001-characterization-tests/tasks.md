@@ -180,7 +180,7 @@ coefficient by 0.001 makes it fail with series id, field path, expected and actu
   `.venv\Scripts\python scripts/measure_env_diff.py --out $env:TEMP\measure.md`. Paste the
   table (field group × series: max abs Δ, max rel Δ) into `research.md` under "Measurement
   results", replacing the pending row, with date and both fingerprints.
-- [ ] T018 [US1] Amended 2026-10-29 (ADR 0003, R-05): two parts.
+- [X] T018 [US1] Amended 2026-10-29 (ADR 0003, R-05): two parts.
   (a) Extend the comparator for the `structure` rule kind of `contracts/tolerances.schema.md`
   (`compare.py`: types, keys, list lengths and finiteness compared, finite values not; `exact` mode
   ignores the kind; tolerant mode refuses a structure rule with a missing or empty `reason` as
@@ -195,7 +195,7 @@ coefficient by 0.001 makes it fail with series id, field path, expected and actu
   `reference_environment`, `measured_environment`, `safety_factor` and each rule's
   `measured_max_abs` / `measured_max_rel` (structure rules included). If a group has a
   non-numeric difference, stop and report it.
-- [ ] T019 [US1] Run `.venv\Scripts\python -m pytest` on Windows (tolerant mode): all 13 real
+- [X] T019 [US1] Run `.venv\Scripts\python -m pytest` on Windows (tolerant mode): all 13 real
   series pass, total under 60 s (SC-002). Run it twice and confirm identical outcome (FR-005).
   Commit the tolerances as `test: set per-field tolerances from measurement` (the research
   table was committed with T017).
