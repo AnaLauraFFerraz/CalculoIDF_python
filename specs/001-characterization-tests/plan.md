@@ -17,7 +17,7 @@ production** (Linux, Python 3.10, the pins in `requirements.txt`). A pytest suit
 pipeline and compares the full output recursively: **bit-for-bit** in the reference environment
 (the CI job), **per-field rules** anywhere else (e.g., the Windows development machine):
 numeric tolerances for the pre-fit fields and, for the post-fit fields, a structure-only rule
-(types, keys, list lengths and NaN-ness; ADR 0003). The tolerance values come from an explicit
+(types, keys, list lengths and finiteness; ADR 0003). The tolerance values come from an explicit
 measurement of the Windows-vs-reference differences on the 13 CSVs. A script regenerates golden
 files only with a recorded reason and appends to a versioned changelog. A GitHub Actions
 workflow runs the suite on every push; a repository ruleset (manual step) makes it a required status check on `main`. Production code is

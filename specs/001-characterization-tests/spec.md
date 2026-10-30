@@ -149,7 +149,7 @@ merge.
   versions) the comparison MUST require exact (bit-for-bit) equality for every field. In any other
   environment (e.g., the Windows development machine), fields computed before the fit MUST use
   numeric tolerances set by measurement; the fitted parameters (`k, m, c, n`) and the fields
-  derived from them MAY be compared by structure only (types, keys, list lengths, NaN-ness), with
+  derived from them MAY be compared by structure only (types, keys, list lengths, finiteness), with
   a recorded reason, when the measurement shows differences that no tolerance able to detect the
   SC-003 changes can bound (ADR 0003). The rules and the measurement are recorded with the
   references.

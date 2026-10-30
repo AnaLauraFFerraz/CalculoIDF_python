@@ -125,7 +125,7 @@ and the code in `src/` as of `255ac0e`.
     **Post-fit** groups — `parameters.**` (k, m, c, n — least stable, D-01),
     `intensity_graph_data_*.i_calculated[*]`, `intensity_graph_data_*.regression.*`,
     `mean_relative_errors.*`, `ns.*` — use the `structure` rule: types, keys, list lengths and
-    NaN-ness are compared, values are not, with D-01 as the recorded reason. **Pre-fit** groups —
+    finiteness are compared, finite values are not, with D-01 as the recorded reason. **Pre-fit** groups —
     `graph_data.**` and the default `**` (which includes `i_real`) — use numeric tolerances. In
     `exact` mode the rule kinds are ignored and every number is compared with `==`.
   - **Setting the values (measurement task, FR-002)**: run `scripts/measure_env_diff.py` on the

@@ -182,7 +182,7 @@ coefficient by 0.001 makes it fail with series id, field path, expected and actu
   results", replacing the pending row, with date and both fingerprints.
 - [ ] T018 [US1] Amended 2026-10-29 (ADR 0003, R-05): two parts.
   (a) Extend the comparator for the `structure` rule kind of `contracts/tolerances.schema.md`
-  (`compare.py`: types, keys, list lengths and NaN-ness compared, values not; `exact` mode
+  (`compare.py`: types, keys, list lengths and finiteness compared, finite values not; `exact` mode
   ignores the kind; tolerant mode refuses a structure rule with a missing or empty `reason` as
   it refuses `null` tolerances) with unit tests in `tests/unit/test_compare.py`.
   (b) Fill `tests/golden/tolerances.json` from T017: the five **post-fit** groups
