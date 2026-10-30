@@ -24,6 +24,7 @@ TOLERANCES_PATH = GOLDEN_ROOT / "tolerances.json"
 
 LIBRARIES = ("numpy", "pandas", "scipy", "scikit-learn")
 MODES = ("exact", "tolerant")
+RULE_KINDS = ("numeric", "structure")
 MODE_VARIABLE = "CALCULOIDF_COMPARE_MODE"
 
 
@@ -182,13 +183,30 @@ def _pattern_regex(pattern):
 
 
 def _compile_rules(tolerances):
-    rules = tolerances["rules"]
-    unset = [r["pattern"] for r in rules if r["rel_tol"] is None or r["abs_tol"] is None]
-    if unset:
+    null_tolerances, missing_reasons = [], []
+    for rule in tolerances["rules"]:
+        pattern, kind = rule["pattern"], rule.get("kind", "numeric")
+        if kind not in RULE_KINDS:
+            raise ValueError(
+                f"unknown kind {kind!r} in the tolerance rule for pattern {pattern!r}; "
+                f"expected one of {RULE_KINDS}")
+        if kind == "structure":
+            if "rel_tol" in rule or "abs_tol" in rule:
+                raise ValueError(f"the structure rule for pattern {pattern!r} must not carry rel_tol or abs_tol")
+            reason = rule.get("reason")
+            if not isinstance(reason, str) or not reason.strip():
+                missing_reasons.append(pattern)
+        elif rule.get("rel_tol") is None or rule.get("abs_tol") is None:
+            null_tolerances.append(pattern)
+    if null_tolerances:
         raise ToleranceNotSetError(
             "tolerant mode needs measured tolerances, but these rules in tests/golden/tolerances.json "
-            f"are still null: {', '.join(unset)}. Run scripts/measure_env_diff.py (task T017-T018).")
-    return [(_pattern_regex(r["pattern"]), r) for r in rules]
+            f"are still null: {', '.join(null_tolerances)}. Run scripts/measure_env_diff.py (task T017-T018).")
+    if missing_reasons:
+        raise ToleranceNotSetError(
+            "structure rules in tests/golden/tolerances.json need a non-empty reason, "
+            f"but none was given for: {', '.join(missing_reasons)}")
+    return [(_pattern_regex(rule["pattern"]), rule) for rule in tolerances["rules"]]
 
 
 class Diff(NamedTuple):
@@ -229,7 +247,10 @@ def _compare_numbers(expected, actual, path, mode, rules, diffs):
         return
     for regex, rule in rules:
         if regex.match(path):
-            if not math.isclose(expected, actual, rel_tol=rule["rel_tol"], abs_tol=rule["abs_tol"]):
+            if rule.get("kind", "numeric") == "structure":
+                if not (math.isfinite(expected) and math.isfinite(actual)):
+                    diffs.append(Diff(path, expected, actual, f"structure {rule['pattern']}: non-finite mismatch"))
+            elif not math.isclose(expected, actual, rel_tol=rule["rel_tol"], abs_tol=rule["abs_tol"]):
                 label = f"tolerant {rule['pattern']} rel_tol={rule['rel_tol']} abs_tol={rule['abs_tol']}"
                 diffs.append(Diff(path, expected, actual, label))
             return

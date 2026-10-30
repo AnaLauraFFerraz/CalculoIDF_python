@@ -153,3 +153,136 @@ def test_fingerprint_reports_the_effective_kernel_variables(monkeypatch):
     assert compare.fingerprint()["OPENBLAS_CORETYPE"] is None
     monkeypatch.setenv("OPENBLAS_CORETYPE", "Haswell")
     assert compare.fingerprint()["OPENBLAS_CORETYPE"] == "Haswell"
+
+
+STRUCTURE_RULE = {"pattern": "fit.**", "kind": "structure", "reason": "D-01: ill-conditioned fit"}
+NUMERIC_DEFAULT = {"pattern": "**", "rel_tol": 1e-12, "abs_tol": 0.0}
+WITH_STRUCTURE = {"rules": [STRUCTURE_RULE, NUMERIC_DEFAULT]}
+NAN = float("nan")
+INF = float("inf")
+
+
+def fit(value):
+    return {"fit": {"k": value}}
+
+
+@pytest.mark.parametrize("expected,actual", [(100.0, 855.25), (1, 2.5), (0.0, -3.0)])
+def test_structure_rule_accepts_different_finite_numbers(expected, actual):
+    first = {"fit": {"k": expected, "values": [expected, 2.0]}}
+    second = {"fit": {"k": actual, "values": [actual, 7.0]}}
+    assert run_compare(first, second, "tolerant", WITH_STRUCTURE) == []
+
+
+@pytest.mark.parametrize("expected,actual", [
+    (1.0, True), (0.0, False), (1, True), (True, 1.0), (False, 0),
+    (1.0, "1.0"), ("1.0", 1.0),
+    (1.0, [1.0]), ([1.0], 1.0),
+    (1.0, None), (None, 1.0),
+])
+def test_structure_rule_still_checks_that_a_number_is_a_number(expected, actual):
+    diffs = run_compare(fit(expected), fit(actual), "tolerant", WITH_STRUCTURE)
+    assert paths(diffs) == ["fit.k"]
+    assert diffs[0].rule.startswith("type")
+
+
+@pytest.mark.parametrize("expected,actual", [(NAN, 1.0), (1.0, NAN)])
+def test_structure_rule_distinguishes_nan_from_a_number(expected, actual):
+    diffs = run_compare(fit(expected), fit(actual), "tolerant", WITH_STRUCTURE)
+    assert paths(diffs) == ["fit.k"]
+    assert "structure" in diffs[0].rule
+
+
+def test_structure_rule_accepts_nan_against_nan():
+    assert run_compare(fit(NAN), fit(NAN), "tolerant", WITH_STRUCTURE) == []
+
+
+@pytest.mark.parametrize("expected,actual", [
+    (INF, 1.0), (1.0, INF), (-INF, 1.0), (1.0, -INF), (INF, -INF), (-INF, INF),
+    (NAN, INF), (INF, NAN), (NAN, -INF), (-INF, NAN),
+])
+def test_structure_rule_reports_a_non_finite_mismatch(expected, actual):
+    diffs = run_compare(fit(expected), fit(actual), "tolerant", WITH_STRUCTURE)
+    assert paths(diffs) == ["fit.k"]
+    assert "structure" in diffs[0].rule and "non-finite mismatch" in diffs[0].rule
+
+
+@pytest.mark.parametrize("value", [INF, -INF])
+def test_structure_rule_accepts_equal_infinities(value):
+    assert run_compare(fit(value), fit(value), "tolerant", WITH_STRUCTURE) == []
+
+
+def test_structure_rule_still_checks_list_lengths_and_keys():
+    expected = {"fit": {"a": [1.0, 2.0], "b": 1.0}}
+    actual = {"fit": {"a": [1.0], "c": 2.0}}
+    diffs = run_compare(expected, actual, "tolerant", WITH_STRUCTURE)
+    assert paths(diffs) == ["fit.a", "fit.b", "fit.c"]
+    assert [d.rule for d in diffs] == ["length", "key", "key"]
+
+
+def test_structure_rule_does_not_relax_strings_and_booleans():
+    expected = {"fit": {"name": "log-normal", "flag": True}}
+    actual = {"fit": {"name": "Gumbel", "flag": False}}
+    assert paths(run_compare(expected, actual, "tolerant", WITH_STRUCTURE)) == ["fit.flag", "fit.name"]
+
+
+def test_exact_mode_ignores_the_rule_kind():
+    diffs = run_compare(fit(100.0), fit(100.0000001), "exact", WITH_STRUCTURE)
+    assert paths(diffs) == ["fit.k"]
+    assert diffs[0].rule == "exact"
+
+
+def test_exact_mode_does_not_validate_structure_rules():
+    invalid = {"rules": [{"pattern": "fit.**", "kind": "structure"},
+                         {"pattern": "**", "kind": "fuzzy", "rel_tol": None, "abs_tol": None}]}
+    assert run_compare(fit(1.0), fit(1.0), "exact", invalid) == []
+
+
+@pytest.mark.parametrize("kind_fields", [{}, {"kind": "numeric"}])
+def test_numeric_rules_behave_the_same_with_or_without_the_kind(kind_fields):
+    tolerances = {"rules": [dict(pattern="**", rel_tol=1e-3, abs_tol=0.0, **kind_fields)]}
+    assert run_compare({"k": 100.0}, {"k": 100.05}, "tolerant", tolerances) == []
+    assert paths(run_compare({"k": 100.0}, {"k": 101.0}, "tolerant", tolerances)) == ["k"]
+
+
+@pytest.mark.parametrize("reason", [None, "", "   ", "\t\n"])
+def test_tolerant_refuses_a_structure_rule_without_a_reason(reason):
+    rule = {"pattern": "parameters.**", "kind": "structure"}
+    if reason is not None:
+        rule["reason"] = reason
+    tolerances = {"rules": [rule, NUMERIC_DEFAULT]}
+    with pytest.raises(ToleranceNotSetError, match=r"reason.*parameters\.\*\*|parameters\.\*\*.*reason"):
+        run_compare({"a": 1}, {"a": 1}, "tolerant", tolerances)
+
+
+def test_tolerant_refuses_an_unknown_rule_kind():
+    tolerances = {"rules": [{"pattern": "fit.**", "kind": "fuzzy", "rel_tol": 1e-3, "abs_tol": 0.0},
+                            NUMERIC_DEFAULT]}
+    with pytest.raises(ValueError, match=r"kind.*fuzzy|fuzzy.*kind"):
+        run_compare({"a": 1}, {"a": 1}, "tolerant", tolerances)
+
+
+@pytest.mark.parametrize("tolerance_fields", [{"rel_tol": 1e-3}, {"abs_tol": 0.0}, {"rel_tol": None, "abs_tol": None}])
+def test_tolerant_refuses_a_structure_rule_that_carries_tolerances(tolerance_fields):
+    rule = dict(STRUCTURE_RULE, **tolerance_fields)
+    with pytest.raises(ValueError, match=r"fit\.\*\*.*(rel_tol|abs_tol)"):
+        run_compare({"a": 1}, {"a": 1}, "tolerant", {"rules": [rule, NUMERIC_DEFAULT]})
+
+
+def test_tolerant_names_the_pattern_of_a_numeric_rule_without_tolerances():
+    tolerances = {"rules": [{"pattern": "fit.**", "kind": "numeric"}, NUMERIC_DEFAULT]}
+    with pytest.raises(ToleranceNotSetError, match=r"fit\.\*\*"):
+        run_compare({"a": 1}, {"a": 1}, "tolerant", tolerances)
+
+
+def test_first_match_wins_when_a_structure_rule_precedes_a_numeric_one():
+    tolerances = {"rules": [STRUCTURE_RULE, NUMERIC_DEFAULT]}
+    expected = {"fit": {"k": 1.0}, "other": 1.0}
+    actual = {"fit": {"k": 2.0}, "other": 2.0}
+    assert paths(run_compare(expected, actual, "tolerant", tolerances)) == ["other"]
+
+
+def test_first_match_wins_when_a_numeric_rule_precedes_a_structure_one():
+    tolerances = {"rules": [{"pattern": "fit.k", "rel_tol": 1e-12, "abs_tol": 0.0}, STRUCTURE_RULE]}
+    expected = {"fit": {"k": 1.0, "m": 1.0}}
+    actual = {"fit": {"k": 2.0, "m": 2.0}}
+    assert paths(run_compare(expected, actual, "tolerant", tolerances)) == ["fit.k"]

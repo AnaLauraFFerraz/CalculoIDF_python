@@ -8,7 +8,8 @@ Two rule kinds (ADR 0003):
 
 - **numeric** (default): numbers are compared with `math.isclose(rel_tol, abs_tol)`. Used for
   pre-fit fields, whose cross-environment differences are rounding noise.
-- **structure**: only types, keys, list lengths and NaN-ness are compared; values are not.
+- **structure**: only types, keys, list lengths and finiteness (`NaN`, `+inf`, `-inf`) are
+  compared; finite values are not.
   Used for post-fit fields, whose cross-environment differences are amplified by the
   ill-conditioned fit (D-01). A mandatory, non-empty `reason` records why.
 
@@ -36,8 +37,8 @@ Two rule kinds (ADR 0003):
   `rel_tol` and `abs_tol`; a structure rule has `reason` and no tolerances.
 - Tolerances apply to numbers only. Keys, list lengths, order, types, booleans and strings are
   always compared exactly, in both modes. A `structure` rule relaxes only the comparison of
-  numeric **values**: a number must still be a number (not a boolean, string or list), and `NaN`
-  must still be `NaN` (a `NaN` against a number is a difference).
+  finite numeric **values**: a number must still be a number (not a boolean, string or list), and
+  `NaN`, `+inf` and `-inf` must match; a non-finite value against a finite one is a difference.
 - `measured_max_abs` / `measured_max_rel` are recorded for every rule, structure rules included,
   as the evidence behind the rule.
 - `null` tolerances in a numeric rule are placeholders until the measurement task fills them;
