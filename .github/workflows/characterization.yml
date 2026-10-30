@@ -31,6 +31,14 @@ jobs:
         with:
           python-version: "3.10"
       - run: python -m pip install -r requirements.txt -r requirements-test.txt
+      - name: Log runner CPU
+        continue-on-error: true
+        run: |
+          lscpu | grep -E '^Model name:' || true
+          flags=$(grep -m1 '^flags' /proc/cpuinfo || true)
+          avx512=$(printf '%s\n' $flags | grep '^avx512' | tr '\n' ' ' || true)
+          if printf '%s\n' $flags | grep -qx avx512f; then echo "avx512f: present"; else echo "avx512f: absent"; fi
+          echo "avx512 flags: ${avx512:-none}"
       - run: python -m pytest
 
   generate-golden:
