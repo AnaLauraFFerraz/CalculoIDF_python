@@ -4,7 +4,7 @@
 
 **Status**: Approved (2026-10-29)
 
-**Amended**: 2026-10-29 — CI trigger aligned after /speckit-analyze (A1): `characterization` runs on push only; the required check is satisfied on the head SHA; CPU kernels pinned from the start (R-03); cross-environment rule for post-fit fields changed to structure-only, pre-fit fields keep numeric tolerances (R-05, ADR 0003, after the T017 measurement of 2026-10-29).
+**Amended**: 2026-10-29 — CI trigger aligned after /speckit-analyze (A1): `characterization` runs on push only; the required check is satisfied on the head SHA; CPU kernels pinned from the start (R-03); cross-environment rule for post-fit fields changed to structure-only, pre-fit fields keep numeric tolerances (R-05, ADR 0003, after the T017 measurement of 2026-10-29); 2026-10-31 — M-1 also requires a pull request (0 approvals) and allows merge commits only, so the commit SHAs cited in `research.md` survive the merge.
 
 **Input**: Feature specification from `specs/001-characterization-tests/spec.md`; technical notes
 from `docs/knowledge/07-technical-notes-by-feature.md`, section "001 — Characterization tests".
@@ -165,7 +165,10 @@ golden-file inputs).
   ruleset, target `main`, enforcement *Active*, rule *Require status checks to pass* with the
   check `characterization` (the job name of the workflow). It can only be selected after the
   workflow has run at least once. Not automated: changing repository settings is outside the
-  code and needs explicit approval.
+  code and needs explicit approval. Amended 2026-10-31: the ruleset also requires a pull
+  request before merging, with 0 required approvals (the maintainer merges their own PRs), and
+  restricts the allowed merge method to merge commits: `research.md` cites commit SHAs as
+  evidence, and squash or rebase would rewrite them.
 - **M-2 — Commit generated golden files**: download the `golden-<run id>` artifact of the
   `generate-golden` job (`gh run download <run-id> -n golden-<run-id>`), review the diff and the
   new `CHANGELOG.md` entry, and commit. Initial generation (phase 2): push a commit whose

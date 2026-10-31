@@ -317,7 +317,10 @@ be merged.
 - [ ] T034 [MANUAL] [US4] **M-1**: maintainer creates the repository ruleset on `main`
   (Settings → Rules → Rulesets, enforcement Active, *Require status checks to pass* with
   `characterization`, and *Require branches to be up to date before merging*, so the tested head
-  commit equals the merge result). Claude does not change repository settings.
+  commit equals the merge result). Amended 2026-10-31: also *Require a pull request before
+  merging* with 0 required approvals, and allowed merge methods restricted to *merge* (merge
+  commits only), because `research.md` cites commit SHAs as evidence and squash or rebase would
+  rewrite them. Claude does not change repository settings.
 - [ ] T035 [MANUAL] [US4] Demonstrate blocking: push a throwaway branch with a 0.001 change in a
   disaggregation coefficient, open a PR, confirm the check fails and the merge is blocked; close
   the PR and delete the branch (maintainer's decision).
