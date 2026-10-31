@@ -573,3 +573,36 @@ In every case the failure reported series id, field path, expected value, actual
 - `git diff main -- src/ requirements.txt` is empty (`main` at `7fedeac`).
 - No run differed from the golden files; neither the golden files nor the tolerances were
   changed.
+
+## Quickstart validation (T040)
+
+Run on 2026-10-31 from `e3deba1` on the Windows development machine (`.venv`, Python 3.10.22,
+the pins of `requirements.txt`), with `CALCULOIDF_COMPARE_MODE` unset (tolerant mode by
+fingerprint). `src/` was not modified.
+
+| Scenario | Outcome | Deviation |
+|---|---|---|
+| 1 — suite passes | `122 passed` (unit tests and 21 series) in 36.66 s (pytest), 37.8 s wall time; no network error from the guard | none |
+| 2 — numeric change detected | not re-run | Deviation: the three perturbations require editing `src/`; quickstart asks to record them once, which T036 did (section above, from `4268d97`) |
+| 3 — regeneration requires a reason | no `--reason` → exit 2 (argparse); `--reason "   "` → exit 2 (`--reason must not be empty`); `--reason "…"` on Windows → exit 3 (not the reference environment); `git status` unchanged | The CI paths were not re-run here: `[regenerate-golden]` push was exercised by T014 and T029; the dispatch after the merge is T025, still open |
+| 4 — edge cases frozen | `S7.json`: `result_kind` `string`, the insufficient-data message, marker `known-defect` D-02 / C-02. S1 string; S2 `sample_size_above_30_years: false`; S3 `empty_consistent_data: true`; S4 `empty_years: [1985]`; S5 and S6 marker D-02 / C-02; S8 `empty_years: [1966]`, marker `suspected` D-13 | none against R-06 |
+| 5 — measurement and tolerances | `scripts/measure_env_diff.py --out <scratch>/measure.md`, all 21 series, exit 0, no non-numeric difference, nothing written under `tests/golden/`. Pre-fit maxima equal to T017: `graph_data.**` 9.948e-13 abs / 6.131e-15 rel, `**` 6.821e-13 abs / 2.169e-15 rel, within the numeric tolerances of `tests/golden/tolerances.json` | See below: post-fit maxima over 21 series exceed the T017 values |
+| 6 — automatic protection | not re-run | Deviation: requires a push and a PR; demonstrated by T035 (PR #2, `mergeStateStatus: BLOCKED`) |
+| 7 — determinism and no production change | second run `122 passed` in 37.27 s, per-test outcomes (`pytest -rA`) identical to scenario 1; `git diff main -- src/ requirements.txt` empty (`main` at `7fedeac`); `git diff tcc-2023 -- src/ requirements.txt` empty | none |
+
+**Post-fit maxima over the 21 series (scenario 5).** T017 measured the 13 real series only. With
+the 8 synthetic series included, S4 has the largest Windows × Linux differences in three
+post-fit groups:
+
+| Field group | Max abs Δ (21 series) | Max rel Δ (21 series) | Series | Max rel Δ in T017 (13 real) |
+|---|---|---|---|---|
+| `parameters.**` | 1.505e+02 | 5.867e-01 | S4 | 1.795e-01 |
+| `intensity_graph_data_*.i_calculated[*]` | 1.218e+00 (S4); 1.375e+00 overall | 4.071e-02 | S4 | 1.698e-02 |
+| `mean_relative_errors.*` | 3.697e-01 | 1.506e-01 | S4 | 2.919e-02 |
+
+`regression.*` and `ns.*` keep the T017 maxima. S8 has no post-fit difference. T031's condition
+(a synthetic series moving a tolerance group beyond T018) was therefore met in the structure
+groups: S4 exceeds the T017 maxima. These groups are `structure` rules (ADR 0003), so the suite
+outcome does not change; the pre-fit groups, which carry the numeric tolerances, are not moved.
+The measurement record (`measured_max_*` in `tests/golden/tolerances.json`) covered the 13 real
+series only; it is updated over all 21 series by T042.

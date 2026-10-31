@@ -355,7 +355,7 @@ be merged.
 - [X] T039 [P] Update `CLAUDE.md` "Commands" (test commands that now exist, `requirements-test.txt`)
   and the "No … tests … no CI yet" sentences; update `docs/knowledge` only where it states the
   absence of tests/CI. Describe only what exists.
-- [ ] T040 Run the quickstart scenarios 1–7 in `quickstart.md` and note any deviation in
+- [X] T040 Run the quickstart scenarios 1–7 in `quickstart.md` and note any deviation in
   `research.md`.
 - [ ] T041 After implementation, run `/speckit-converge` to catch unbuilt work.
 
