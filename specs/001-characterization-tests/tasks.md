@@ -284,11 +284,11 @@ carry a marker pointing to the backlog item.
   `{status: "known-defect", debt: "D-02", fix: "C-02"}` with a one-line `note` each; S8 →
   `{status: "suspected", debt: "D-13", fix: null, note: "pandas 3 Copy-on-Write turns
   fillna(inplace=True) into a no-op; handled in the phase-2 library upgrade"}` (FR-008).
-- [ ] T029 [MANUAL] [US3] Push a `[regenerate-golden]` commit (body: `edge cases: synthetic
+- [X] T029 [MANUAL] [US3] Push a `[regenerate-golden]` commit (body: `edge cases: synthetic
   series S1-S8`). The push trigger has no `--series`, so the job generates **every** series;
   thanks to T021 the 13 real golden files stay byte-identical and only S1–S8 are written.
   Download the artifact.
-- [ ] T030 [US3] Review the synthetic golden files against the R-06 hypotheses, **report any
+- [X] T030 [US3] Review the synthetic golden files against the R-06 hypotheses, **report any
   difference to the maintainer instead of changing the code or the fixture to match**. Confirm
   the real golden files are unchanged in the artifact. Mandatory: `S7.json` has `result_kind:
   "string"` (insufficient data, 8 years). Then commit

@@ -480,5 +480,8 @@ logs.
   (`test_golden.py`) passed in all three runs.
 - Deviation: the three runs are new pushes, each on a new runner, not re-runs from the draft PR
   as T020 states; the evidence is equivalent.
+- Additional evidence (T029): run 41159855775, job 124414788296, runner GitHub Actions
+  1000000282, AMD EPYC 7763 (no AVX-512); the 13 real series passed in exact mode (the job
+  failed only on the 8 synthetic series, which had no golden files yet).
 - No run differed from the golden files; neither the golden files nor the tolerances were
   changed.

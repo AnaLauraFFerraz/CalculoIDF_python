@@ -106,3 +106,73 @@ Changed fields:
 - `initial generation`
 
 </details>
+
+## 2026-10-31T02:24:51Z
+
+- **Series**: S1, S2, S3, S4, S5, S6, S7, S8
+- **Environment**: os=Linux, machine=x86_64, python=3.10.22, numpy=1.24.3, pandas=2.0.1, scipy=1.10.1, scikit-learn=1.3.0, OPENBLAS_CORETYPE=Haswell, NPY_DISABLE_CPU_FEATURES=AVX512F,AVX512CD,AVX512_SKX,AVX512_CLX,AVX512_CNL,AVX512_ICL
+- **Trigger**: https://github.com/AnaLauraFFerraz/CalculoIDF_python/actions/runs/41159855775
+- **Reason**:
+
+> edge cases: synthetic series S1-S8
+
+| Series | Changed leaves | Max abs Δ | Max rel Δ |
+|---|---|---|---|
+| S1 | initial generation | - | - |
+| S2 | initial generation | - | - |
+| S3 | initial generation | - | - |
+| S4 | initial generation | - | - |
+| S5 | initial generation | - | - |
+| S6 | initial generation | - | - |
+| S7 | initial generation | - | - |
+| S8 | initial generation | - | - |
+
+Changed fields:
+
+<details><summary>S1</summary>
+
+- `initial generation`
+
+</details>
+
+<details><summary>S2</summary>
+
+- `initial generation`
+
+</details>
+
+<details><summary>S3</summary>
+
+- `initial generation`
+
+</details>
+
+<details><summary>S4</summary>
+
+- `initial generation`
+
+</details>
+
+<details><summary>S5</summary>
+
+- `initial generation`
+
+</details>
+
+<details><summary>S6</summary>
+
+- `initial generation`
+
+</details>
+
+<details><summary>S7</summary>
+
+- `initial generation`
+
+</details>
+
+<details><summary>S8</summary>
+
+- `initial generation`
+
+</details>
