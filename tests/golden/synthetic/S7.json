@@ -1,0 +1,27 @@
+{
+  "metadata": {
+    "environment": {
+      "NPY_DISABLE_CPU_FEATURES": "AVX512F,AVX512CD,AVX512_SKX,AVX512_CLX,AVX512_CNL,AVX512_ICL",
+      "OPENBLAS_CORETYPE": "Haswell",
+      "machine": "x86_64",
+      "numpy": "1.24.3",
+      "os": "Linux",
+      "pandas": "2.0.1",
+      "python": "3.10.22",
+      "scikit-learn": "1.3.0",
+      "scipy": "1.10.1"
+    },
+    "generated_at": "2026-10-31T02:24:51Z",
+    "input_path": "tests/fixtures/synthetic/S7.csv",
+    "input_sha256": "197e27becaa1261a595362e34d0f1eebc539edb83c33c3b16749a79fdbeffb6e",
+    "marker": {
+      "debt": "D-02",
+      "fix": "C-02",
+      "note": "10 complete water years trimmed to 8: insufficient data",
+      "status": "known-defect"
+    },
+    "series_id": "S7"
+  },
+  "result": "Dados não são sufientes para completar a análise",
+  "result_kind": "string"
+}

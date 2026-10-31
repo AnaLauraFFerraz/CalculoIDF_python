@@ -1,0 +1,74 @@
+name: characterization
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: Why the golden files are being regenerated
+        required: true
+      series:
+        description: "Space-separated series ids (default: all)"
+        required: false
+
+env:
+  OMP_NUM_THREADS: "1"
+  OPENBLAS_NUM_THREADS: "1"
+  MKL_NUM_THREADS: "1"
+  OPENBLAS_CORETYPE: Haswell
+  NPY_DISABLE_CPU_FEATURES: "AVX512F,AVX512CD,AVX512_SKX,AVX512_CLX,AVX512_CNL,AVX512_ICL"
+
+jobs:
+  characterization:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    env:
+      CALCULOIDF_COMPARE_MODE: exact
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+      - run: python -m pip install -r requirements.txt -r requirements-test.txt
+      - name: Log runner CPU
+        continue-on-error: true
+        run: |
+          lscpu | grep -E '^Model name:' || true
+          flags=$(grep -m1 '^flags' /proc/cpuinfo || true)
+          avx512=$(printf '%s\n' $flags | grep '^avx512' | tr '\n' ' ' || true)
+          if printf '%s\n' $flags | grep -qx avx512f; then echo "avx512f: present"; else echo "avx512f: absent"; fi
+          echo "avx512 flags: ${avx512:-none}"
+      - run: python -m pytest
+
+  generate-golden:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && contains(github.event.head_commit.message, '[regenerate-golden]'))
+    runs-on: ubuntu-24.04
+    env:
+      COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+      DISPATCH_REASON: ${{ inputs.reason }}
+      DISPATCH_SERIES: ${{ inputs.series }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+      - run: python -m pip install -r requirements.txt -r requirements-test.txt
+      - name: Regenerate golden files
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            REASON=$(printf '%s\n' "$COMMIT_MESSAGE" | tail -n +2 | sed 's/\[regenerate-golden\]//g')
+          else
+            REASON="$DISPATCH_REASON"
+          fi
+          args=(--reason "$REASON")
+          if [ -n "$DISPATCH_SERIES" ]; then
+            args+=(--series $DISPATCH_SERIES)
+          fi
+          python scripts/update_golden.py "${args[@]}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: golden-${{ github.run_id }}
+          path: tests/golden/
