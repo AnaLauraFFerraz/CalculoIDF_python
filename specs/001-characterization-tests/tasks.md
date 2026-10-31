@@ -247,7 +247,7 @@ series id, changed fields, reason); without a reason the script refuses and writ
   root and no changelog entry; an unchanged result leaves the file byte-identical and adds no
   entry; a changed result rewrites the file and appends an entry with the table (changed leaves,
   max abs/rel Δ), the changed paths and the reason.
-- [ ] T025 [MANUAL] [US2] After the merge only: demonstrate a later regeneration with
+- [X] T025 [MANUAL] [US2] After the merge only: demonstrate a later regeneration with
   `gh workflow run characterization.yml --ref <branch> -f reason="..." -f series="<id>"` and
   check the changelog entry (plan § Implementation Phases, item 6). Before the merge, T024 is the
   proof.

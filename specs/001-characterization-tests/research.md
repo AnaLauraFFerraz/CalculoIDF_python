@@ -697,3 +697,59 @@ decided each one.
 | F3 | unrequested | LOW | plan: Project Structure | `tests/unit/test_tolerances_file.py`, `tests/unit/test_bootstrap.py` and the "Log runner CPU" workflow step are not in the plan's structure | Accepted, no plan change: `test_bootstrap.py` covers the kernel and thread variables pinned by R-03 (`bootstrap.py`, T004); `test_tolerances_file.py` checks the tolerance file filled by T018 (rule kinds, mandatory reasons, recorded measurement); the CPU log step provides the runner CPU evidence recorded by T020 |
 
 T025 (manual, after the merge) remains open by design and is not a convergence finding.
+
+## Post-merge regeneration demonstration (T025)
+
+Run on 2026-10-31, after PR #1 was merged into `main` with a merge commit (`406e666`; the
+`characterization` check on that commit concluded `success`).
+
+- Command: `gh workflow run characterization.yml --ref main -f reason="T025: demonstrate a later
+  regeneration" -f series="chuvas_C_01944009_PL"`.
+- Run 41250807478 (`workflow_dispatch`, head `406e666`): job `generate-golden` (124683736944,
+  runner GitHub Actions 1000000291) `success`; job `characterization` skipped, as designed for
+  `workflow_dispatch`. Artifact `golden-41250807478` (id 13060104669) uploaded.
+- Script output: `No golden file changed; no changelog entry added.`
+- The downloaded artifact is byte-identical to `tests/golden/` on `main`:
+  `real/chuvas_C_01944009_PL.json` unchanged and `CHANGELOG.md` without a new entry. Nothing was
+  committed.
+- Deviation from the task text ("check the changelog entry"): with unchanged code the
+  regeneration changes no golden file, so by contract (`contracts/update-golden-cli.md`) no
+  changelog entry is written. The run demonstrates the dispatch path, the `--series` filter and
+  the unchanged-file rule in the reference environment; the entry-writing path is shown by the
+  CI generations of T014 and T029 (the two entries in `tests/golden/CHANGELOG.md`) and by the
+  unit tests of T024.
+
+### Dispatch-skip check of the required status (2026-10-31)
+
+- **Hypothesis.** After the T025 dispatch, commit `406e666` carries two `characterization` check
+  runs: `success` (push) and `skipped` (the dispatch, because the job has
+  `if: github.event_name == 'push'`). GitHub documents that a skipped job reports "Success" and
+  does not block merging even when it is required, so a `workflow_dispatch` run might satisfy the
+  required `characterization` check on a head whose push run failed.
+- **Experiment.** Throwaway branch `t044-dispatch-skip-demo` from `406e666`, commit `b0826a7`
+  changing the `"2h"` disaggregation coefficient from 0.52 to 0.521, PR #4 to `main`.
+  - Push run 41251156153: `characterization` `failure` (`17 failed, 105 passed`);
+    `mergeStateStatus: BLOCKED`.
+  - Dispatch run 41251261514 (`--ref t044-dispatch-skip-demo`): `generate-golden` `success`,
+    `characterization` `skipped`.
+  - Check runs on head `b0826a7` after both runs:
+
+    | Name | Conclusion | Check run | Run | Event |
+    |---|---|---|---|---|
+    | characterization | failure | 124684763480 | 41251156153 | push |
+    | generate-golden | skipped | 124684764856 | 41251156153 | push |
+    | characterization | skipped | 124685082067 | 41251261514 | workflow_dispatch |
+    | generate-golden | success | 124685080890 | 41251261514 | workflow_dispatch |
+
+- **Result.** `mergeStateStatus` stayed `BLOCKED` (`mergeable: MERGEABLE`, no conflict). The PR's
+  `statusCheckRollup` (GraphQL) had state `FAILURE` and listed only the two push-run checks
+  (`characterization` `FAILURE`, `isRequired: true`; `generate-golden` `SKIPPED`);
+  `gh pr checks 4` reported `characterization fail`. The hole was not confirmed.
+- **Probable mechanism (inference, not verified in GitHub documentation).** The check suite of a
+  `workflow_dispatch` run is not associated with the pull request, so its skipped
+  `characterization` check run does not enter the PR's required-check evaluation.
+- **Scope.** Only the order "push run fails, then dispatch" was exercised. A dispatch before the
+  push run completes, or while it is pending, was not tested.
+- **Cleanup.** PR #4 closed without merge, with a comment summarizing the result; the branch was
+  deleted remotely and locally. `git diff tcc-2023 -- src/ requirements.txt` is empty. The
+  workflow was not changed.
