@@ -512,5 +512,64 @@ the `"1h"` coefficient in `src/disaggregation_coef.py` was changed from 0.42 to 
   `graph_data` did not, as R-05 predicted.
 - `mergeStateStatus: BLOCKED` (`mergeable: MERGEABLE`, i.e. no conflict; the block came from
   the ruleset). PR #2 was closed without merge and the branch was deleted.
+
+## Sensitivity, network and determinism checks (T036–T038)
+
+Run on 2026-10-31 from `4268d97`. Each perturbation was exactly 0.001, never committed to
+`001-characterization-tests`, and reverted before the next one (`git diff --exit-code -- src/`
+exited 0 after each).
+
+**SC-003 sensitivity (T036)**
+
+- (a) Disaggregation coefficient `"2h"` 0.52 → 0.521 (`src/disaggregation_coef.py`), tolerant
+  mode on Windows, `pytest tests/characterization`: `17 failed, 4 passed`. The failures are the
+  11 real series with numeric output and S2–S6, S8; the 4 insufficient-data series passed. Every
+  reported difference is `intensity_graph_data_2.i_real[*]` under the pre-fit `**` rule (8 or 9
+  per series), e.g. `intensity_graph_data_2.i_real[45]` 22.557793849006924 → 22.601174221793475
+  (`rule=tolerant ** rel_tol=1e-12 abs_tol=7e-12`). The post-fit groups are structure-only in
+  tolerant mode (ADR 0003), so they report nothing.
+- (b) BFGS initial guess, component `m` 0.1 → 0.101 (`INITIAL_GUESS` in `src/ventechow.py`),
+  exact mode in the reference environment. Deviation from the task text: instead of a VM or
+  WSL, the CI reference environment itself was used, through the throwaway branch
+  `t036-initial-guess` (commit `3a6820e`, pushed without a PR, then deleted); this is equivalent
+  or stronger, since it is the environment that generated the golden files. Check
+  `characterization`: run 41210406613, job 124564022887, runner GitHub Actions 1000000288, AMD
+  EPYC 7763 (no AVX-512): failure, `17 failed, 105 passed`, the same 17 series as (a). Each
+  failing series has 135 or 136 differences, against 136 post-fit numeric leaves per series
+  (`parameters` 8, `i_calculated` 120, `regression` 4, `mean_relative_errors` 2, `ns` 2), e.g.
+  `intensity_graph_data_1.i_calculated[*]`. `scripts/measure_env_diff.py` on that branch (Windows,
+  all 21 series) gave the pre-fit maxima of T017 unchanged: `graph_data.**` 9.948e-13 abs /
+  6.131e-15 rel, `**` 6.821e-13 abs / 2.169e-15 rel, no non-numeric difference. The initial guess
+  therefore reaches the post-fit fields only, as R-05 predicted.
+- (c) Theoretical Gumbel coefficient 0.7797 → 0.7807 in both `src/distributions.py:99` and
+  `src/k_coefficient.py:50`, tolerant mode on Windows: `6 failed, 15 passed`. The failures are
+  exactly the 6 series whose chosen distribution is `Gumbel Teórica` (`chuvas_C_01844000_CV`,
+  `chuvas_C_01844000_CV1`, `chuvas_C_01944009_PL`, S3, S6, S8). For `chuvas_C_01944009_PL`, 184
+  differences: 120 `intensity_graph_data_*.i_real[*]` (rule `**`) and 64 `graph_data.P_dist[*]`
+  (rule `graph_data.**`), e.g. `graph_data.P_dist[0]` 45.22143997305043 → 45.195526713815966.
+
+In every case the failure reported series id, field path, expected value, actual value and rule
+(FR-003). No numeric tolerance hid a perturbation that reaches a pre-fit group.
+
+**SC-004 / FR-004 network and credentials (T037)**
+
+- `GOOGLE_APPLICATION_CREDENTIALS` unset and no application-default credentials file on the
+  machine.
+- The network adapter was not disabled. Instead, an ad-hoc pytest plugin outside the repository
+  replaced `socket.socket.connect`, `socket.socket.connect_ex`, `socket.create_connection` and
+  `socket.getaddrinfo` for the whole session (collection included) with functions that record
+  the attempt and raise. Full suite: `122 passed`, `0 network attempt(s)`. Positive control: a
+  test calling `urllib.request.urlopen` and `socket.create_connection` under the same plugin
+  recorded 2 attempts.
+- SC-002: full suite (21 series and the unit tests) in 37.92 s (pytest) and 37.0 s wall time,
+  under 60 s.
+
+**FR-005 / FR-010 determinism and production code (T038)**
+
+- Two consecutive full runs on Windows (tolerant mode): 122 tests passed in both, with
+  identical per-test outcomes (`pytest -rA` lists compared).
+- CI exact mode on unchanged `src/`: runs 41160365316 (`25d4cbb`), 41205456211 (`ab486b5`) and
+  41209553808 (`4268d97`), `122 passed` each.
+- `git diff main -- src/ requirements.txt` is empty (`main` at `7fedeac`).
 - No run differed from the golden files; neither the golden files nor the tolerances were
   changed.

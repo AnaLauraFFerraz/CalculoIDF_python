@@ -312,7 +312,7 @@ be merged.
   sets `CALCULOIDF_COMPARE_MODE=exact` explicitly (a fingerprint mismatch in CI must fail, not
   relax), that its job name is exactly `characterization`, and that it runs on `push` to any
   branch only.
-- [ ] T033 [MANUAL] [US4] Maintainer marks the draft PR of T013 ready for review and confirms the
+- [X] T033 [MANUAL] [US4] Maintainer marks the draft PR of T013 ready for review and confirms the
   check passes with all 21 series in exact mode (and ≥ 3 stable runs, T020).
 - [X] T034 [MANUAL] [US4] **M-1**: maintainer creates the repository ruleset on `main`
   (Settings → Rules → Rulesets, enforcement Active, *Require status checks to pass* with
@@ -331,7 +331,7 @@ be merged.
 
 ## Phase 7: Polish & verification
 
-- [ ] T036 SC-003 sensitivity test, once, manually. Amended 2026-10-29 (ADR 0003, R-05): each
+- [X] T036 SC-003 sensitivity test, once, manually. Amended 2026-10-29 (ADR 0003, R-05): each
   perturbation is verified in the mode that can see it, by the field groups it reaches (R-05
   gives the `src/` evidence). Perturb by 0.001 (a) a disaggregation coefficient in
   `src/disaggregation_coef.py` — reaches `i_real` (pre-fit) and the post-fit groups — in
@@ -347,10 +347,10 @@ be merged.
   **before starting the next one**. Perturbations are never committed. If a numeric tolerance
   hides a perturbation that reaches a pre-fit group, report it — do not widen it silently
   (R-05). Record the three outcomes in `research.md`.
-- [ ] T037 [P] SC-004 / FR-004: run the suite with the network disabled and no GCP credentials
+- [X] T037 [P] SC-004 / FR-004: run the suite with the network disabled and no GCP credentials
   (`GOOGLE_APPLICATION_CREDENTIALS` unset); confirm zero network calls (the T004 guard would
   raise). SC-002: record the full-suite time.
-- [ ] T038 [P] FR-005: two consecutive runs on Windows and the CI exact-mode runs give the same
+- [X] T038 [P] FR-005: two consecutive runs on Windows and the CI exact-mode runs give the same
   outcome. FR-010: `git diff main -- src/ requirements.txt` is empty.
 - [ ] T039 [P] Update `CLAUDE.md` "Commands" (test commands that now exist, `requirements-test.txt`)
   and the "No … tests … no CI yet" sentences; update `docs/knowledge` only where it states the
