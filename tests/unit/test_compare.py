@@ -128,6 +128,20 @@ def test_only_the_station_with_removed_outliers_carries_a_marker():
     assert (marked["chuvas_C_02346117"]["debt"], marked["chuvas_C_02346117"]["fix"]) == ("D-07", "C-03")
 
 
+def test_synthetic_defect_cases_carry_their_markers():
+    synthetic = [e for e in compare.series_registry() if e["kind"] == "synthetic"]
+    assert [e["id"] for e in synthetic] == [f"S{i}" for i in range(1, 9)]
+    marked = {e["id"]: (e["marker"]["status"], e["marker"]["debt"], e["marker"]["fix"])
+              for e in synthetic if e["marker"] is not None}
+    assert marked == {
+        "S5": ("known-defect", "D-02", "C-02"),
+        "S6": ("known-defect", "D-02", "C-02"),
+        "S7": ("known-defect", "D-02", "C-02"),
+        "S8": ("suspected", "D-13", None),
+    }
+    assert all(e["marker"]["note"] for e in synthetic if e["marker"] is not None)
+
+
 def test_fingerprints_match_ignores_python_patch_only():
     base = dict(compare.REFERENCE_FINGERPRINT, python="3.10.12")
     assert compare.fingerprints_match(base, dict(base, python="3.10.22"))

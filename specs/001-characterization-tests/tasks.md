@@ -280,7 +280,7 @@ carry a marker pointing to the backlog item.
   `unset` for `*.csv`, so bytes are preserved), and create
   `tests/fixtures/synthetic/README.md`: what each fixture covers and its backlog item, plus a
   note that C-01 (D-01) affects every fitted result and therefore has no per-station marker.
-- [ ] T028 [US3] Add the synthetic markers to the marker dict in `compare.py`: S5, S6, S7 →
+- [X] T028 [US3] Add the synthetic markers to the marker dict in `compare.py`: S5, S6, S7 →
   `{status: "known-defect", debt: "D-02", fix: "C-02"}` with a one-line `note` each; S8 →
   `{status: "suspected", debt: "D-13", fix: null, note: "pandas 3 Copy-on-Write turns
   fillna(inplace=True) into a no-op; handled in the phase-2 library upgrade"}` (FR-008).

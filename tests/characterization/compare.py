@@ -110,6 +110,31 @@ MARKERS = {
         "fix": "C-03",
         "note": "4 low outliers removed without recomputing the statistics",
     },
+    "S5": {
+        "status": "known-defect",
+        "debt": "D-02",
+        "fix": "C-02",
+        "note": "starts in October: the complete first water year is dropped",
+    },
+    "S6": {
+        "status": "known-defect",
+        "debt": "D-02",
+        "fix": "C-02",
+        "note": "ends in September: the complete last water year is dropped",
+    },
+    "S7": {
+        "status": "known-defect",
+        "debt": "D-02",
+        "fix": "C-02",
+        "note": "10 complete water years trimmed to 8: insufficient data",
+    },
+    "S8": {
+        "status": "suspected",
+        "debt": "D-13",
+        "fix": None,
+        "note": "pandas 3 Copy-on-Write turns fillna(inplace=True) into a no-op, so the empty "
+                "water year reaches the fit as NaN",
+    },
 }
 
 
