@@ -10,7 +10,7 @@ Local folder: `C:\CalculoIDF\`. Repositories on GitHub (`AnaLauraFFerraz/Calculo
 |---|---|---|---|
 | `CalculoIDF_front` | React 18.2 + Create React App (react-scripts 5.0.1), styled-components 5, react-router-dom 6, axios, chart.js 4 + react-chartjs-2 5, katex + react-katex, react-spinners | Vercel (Hobby plan), Git integration: a push to `main` deploys to production; project configured with Node.js 18, which Vercel has discontinued and which blocks new builds | `REACT_APP_BASE_URL` |
 | `CalculoIDF_API` | Node + Express 4 (CommonJS `src/app.cjs`), multer, cors, express-rate-limit 6, firebase-admin 11, axios, dotenv | Render | `PORT` (default 5000), `FUNCTION_URL`, `FIREBASE_STORAGE_BUCKET_URL`, `FIREBASE_CREDENTIALS` (service account JSON in base64) |
-| `CalculoIDF_python` | Python, Flask (HTTP handler), pandas 2.0.1, numpy 1.24.3, scipy 1.10.1, scikit-learn 1.3.0, google-cloud-storage | Cloud Run functions, 1st gen (entry point `process_request`), Python 3.10 runtime — deprecated on 2026-10-04, decommissioned on 2027-04-04; deployed manually (no CI) | default GCP credentials |
+| `CalculoIDF_python` | Python, Flask (HTTP handler), pandas 2.0.1, numpy 1.24.3, scipy 1.10.1, scikit-learn 1.3.0, google-cloud-storage | Cloud Run functions, 1st gen (entry point `process_request`), Python 3.10 runtime — deprecated on 2026-10-04, decommissioned on 2027-04-04; deployed manually (no deployment pipeline; CI only runs the characterization suite of spec 001) | default GCP credentials |
 
 **Deployed code × repository (checked on 2026-10-27).** The deployed function (version 48, deployed on 2023-09-01) differs from the `tcc-2023` tag only in a line break (`main.py`), two comments (`process_data.py`), a commented-out `# bounds=OPTIMIZATION_BOUNDS` and the final `pprint` (`ventechow.py`), and three commented-out lines in its own `requirements.txt`. **No difference affects the numbers.**
 
@@ -132,7 +132,7 @@ Severity legend: **H** = may produce a wrong result or a failure for the user; *
 ### Cross-cutting
 | ID | Sev. | Issue |
 |---|---|---|
-| D-40 | H | **No automated tests** in any repository. |
+| D-40 | H | **No automated tests** in `CalculoIDF_API` and `CalculoIDF_front`. `CalculoIDF_python` has the characterization suite of spec 001 (golden files for 13 real and 8 synthetic series, plus unit tests of the suite's own comparator and regeneration script), run by GitHub Actions on every push and required on `main`; the modules in `src/` have no unit tests. |
 | D-41 | L | All versioned files showed up as modified **only by line endings**. Addressed in `CalculoIDF_python` by `.gitattributes` (2026-10-27); the other repositories still need it. |
 | D-42 | L | READMEs mentioned an MIT license and a `LICENSE` file that does not exist; the Python README described functions that do not exist ("monthly mean"). The Python README was rewritten on 2026-10-27; the other READMEs still need it. |
 

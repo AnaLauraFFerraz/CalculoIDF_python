@@ -21,9 +21,9 @@ Series with fewer than 10 water years are rejected. The full methodology is in [
 - Deployed as a Google Cloud Function (1st gen, Python 3.10), entry point `process_request` in `src/main.py`. The function receives a `gs://` URL to a CSV previously uploaded to Firebase Storage by the [Node API](https://github.com/AnaLauraFFerraz/CalculoIDF_API); the web interface is [CalculoIDF_front](https://github.com/AnaLauraFFerraz/CalculoIDF_front).
 - Dependencies pinned in `requirements.txt` (pandas 2.0.1, numpy 1.24.3, scipy 1.10.1).
 - 13 real Hidroweb CSVs in `src/csv/`.
-- No automated tests yet.
+- Characterization suite (spec 001): golden files for 13 real and 8 synthetic series, run by GitHub Actions on every push and required on `main`; see `CLAUDE.md` "Commands".
 
-The planned changes (characterization tests, then a single FastAPI service replacing the Node API and the Cloud Function) are described in [`docs/adr/`](docs/adr/) and [`docs/knowledge/04-roadmap.md`](docs/knowledge/04-roadmap.md).
+The planned change (a single FastAPI service replacing the Node API and the Cloud Function) is described in [`docs/adr/`](docs/adr/) and [`docs/knowledge/04-roadmap.md`](docs/knowledge/04-roadmap.md).
 
 ## Running locally
 

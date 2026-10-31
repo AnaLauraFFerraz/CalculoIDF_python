@@ -352,7 +352,7 @@ be merged.
   raise). SC-002: record the full-suite time.
 - [X] T038 [P] FR-005: two consecutive runs on Windows and the CI exact-mode runs give the same
   outcome. FR-010: `git diff main -- src/ requirements.txt` is empty.
-- [ ] T039 [P] Update `CLAUDE.md` "Commands" (test commands that now exist, `requirements-test.txt`)
+- [X] T039 [P] Update `CLAUDE.md` "Commands" (test commands that now exist, `requirements-test.txt`)
   and the "No … tests … no CI yet" sentences; update `docs/knowledge` only where it states the
   absence of tests/CI. Describe only what exists.
 - [ ] T040 Run the quickstart scenarios 1–7 in `quickstart.md` and note any deviation in
