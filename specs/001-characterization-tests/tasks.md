@@ -407,3 +407,8 @@ logical group, Conventional Commits in English, no `Co-Authored-By`.
 - Manual gates: T013/T014/T015/T020/T025/T029/T033–T035 and M-1/M-2. Pause there and ask.
 - Never edit a golden file by hand; never "fix" a synthetic result to match a hypothesis.
 - Any behavior surprise in `src/` is reported, not fixed (out of scope; FR-010).
+
+## Phase 8: Convergence
+
+- [ ] T042 Re-run `scripts/measure_env_diff.py` over all 21 series on Windows and update the measurement record (`measured_at`, every rule's `measured_max_abs` / `measured_max_rel` and the maxima quoted in the structure reasons of `tests/golden/tolerances.json`; a 21-series table in `research.md`; D-01) without changing any `kind`, `rel_tol` or `abs_tol`; stop and report if a pre-fit maximum exceeds T017 per FR-002 (partial)
+- [ ] T043 Align the text of T028 with the S8 marker note as implemented in `tests/characterization/compare.py` per T028 (partial)
