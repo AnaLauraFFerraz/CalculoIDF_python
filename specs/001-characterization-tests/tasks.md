@@ -293,7 +293,7 @@ carry a marker pointing to the backlog item.
   the real golden files are unchanged in the artifact. Mandatory: `S7.json` has `result_kind:
   "string"` (insufficient data, 8 years). Then commit
   `test: add golden files for synthetic edge cases`.
-- [ ] T031 [US3] Run the full suite on Windows (21 series, tolerant mode), under 60 s. If a
+- [X] T031 [US3] Run the full suite on Windows (21 series, tolerant mode), under 60 s. If a
   synthetic series moves a tolerance group beyond T018, re-run T017–T018 including them and
   record it.
 
@@ -308,7 +308,7 @@ carry a marker pointing to the backlog item.
 **Independent Test**: a PR with a numeric change fails the `characterization` check and cannot
 be merged.
 
-- [ ] T032 [US4] Confirm in `.github/workflows/characterization.yml` that `characterization`
+- [X] T032 [US4] Confirm in `.github/workflows/characterization.yml` that `characterization`
   sets `CALCULOIDF_COMPARE_MODE=exact` explicitly (a fingerprint mismatch in CI must fail, not
   relax), that its job name is exactly `characterization`, and that it runs on `push` to any
   branch only.
