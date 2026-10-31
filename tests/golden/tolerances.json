@@ -1,5 +1,5 @@
 {
-  "measured_at": "2026-10-29",
+  "measured_at": "2026-10-31",
   "reference_environment": {
     "os": "Linux",
     "machine": "x86_64",
@@ -27,35 +27,35 @@
     {
       "pattern": "parameters.**",
       "kind": "structure",
-      "reason": "D-01: unbounded, ill-conditioned BFGS fit amplifies cross-environment rounding; measured max rel 1.795e-01 (T017, 2026-10-29); values checked only in exact mode (ADR 0003)",
-      "measured_max_abs": 75.45,
-      "measured_max_rel": 0.1795
+      "reason": "D-01: unbounded, ill-conditioned BFGS fit amplifies cross-environment rounding; measured max rel 5.867e-01 over all 21 series, 13 real and 8 synthetic (T042, 2026-10-31); values checked only in exact mode (ADR 0003)",
+      "measured_max_abs": 150.5,
+      "measured_max_rel": 0.5867
     },
     {
       "pattern": "intensity_graph_data_*.i_calculated[*]",
       "kind": "structure",
-      "reason": "D-01: unbounded, ill-conditioned BFGS fit amplifies cross-environment rounding; measured max rel 1.698e-02 (T017, 2026-10-29); values checked only in exact mode (ADR 0003)",
+      "reason": "D-01: unbounded, ill-conditioned BFGS fit amplifies cross-environment rounding; measured max rel 4.071e-02 over all 21 series, 13 real and 8 synthetic (T042, 2026-10-31); values checked only in exact mode (ADR 0003)",
       "measured_max_abs": 1.375,
-      "measured_max_rel": 0.01698
+      "measured_max_rel": 0.04071
     },
     {
       "pattern": "intensity_graph_data_*.regression.*",
       "kind": "structure",
-      "reason": "D-01: unbounded, ill-conditioned BFGS fit amplifies cross-environment rounding; measured max rel 3.482e+00 (T017, 2026-10-29); values checked only in exact mode (ADR 0003)",
+      "reason": "D-01: unbounded, ill-conditioned BFGS fit amplifies cross-environment rounding; measured max rel 3.482e+00 over all 21 series, 13 real and 8 synthetic (T042, 2026-10-31); values checked only in exact mode (ADR 0003)",
       "measured_max_abs": 0.4213,
       "measured_max_rel": 3.482
     },
     {
       "pattern": "mean_relative_errors.*",
       "kind": "structure",
-      "reason": "D-01: unbounded, ill-conditioned BFGS fit amplifies cross-environment rounding; measured max rel 2.919e-02 (T017, 2026-10-29); values checked only in exact mode (ADR 0003)",
-      "measured_max_abs": 0.08688,
-      "measured_max_rel": 0.02919
+      "reason": "D-01: unbounded, ill-conditioned BFGS fit amplifies cross-environment rounding; measured max rel 1.506e-01 over all 21 series, 13 real and 8 synthetic (T042, 2026-10-31); values checked only in exact mode (ADR 0003)",
+      "measured_max_abs": 0.3697,
+      "measured_max_rel": 0.1506
     },
     {
       "pattern": "ns.*",
       "kind": "structure",
-      "reason": "D-01: unbounded, ill-conditioned BFGS fit amplifies cross-environment rounding; measured max rel 6.896e-04 (T017, 2026-10-29); values checked only in exact mode (ADR 0003)",
+      "reason": "D-01: unbounded, ill-conditioned BFGS fit amplifies cross-environment rounding; measured max rel 6.896e-04 over all 21 series, 13 real and 8 synthetic (T042, 2026-10-31); values checked only in exact mode (ADR 0003)",
       "measured_max_abs": 0.0006826,
       "measured_max_rel": 0.0006896
     },

@@ -451,6 +451,83 @@ with a run in the current environment, without tolerances). The golden files com
 Reading: the pre-fit groups differ by rounding noise only; every non-trivial difference is in
 the post-fit groups. Decision and consequences: ADR 0003.
 
+The tables above (T017) cover the 13 real series and are kept as history; the measurement over
+all 21 series follows.
+
+### Measurement over all 21 series (T042)
+
+Task T042, measured on 2026-10-31 with `scripts/measure_env_diff.py` over the 13 real and the 8
+synthetic series, against the golden files of CI runs 40916698777 (real) and 41159855775
+(synthetic). Same golden (reference) and measured environments as T017. The rows of the 13 real
+series are identical to the T017 table above. S1 and S7 end in the insufficient-data message,
+have no numeric leaves and match. No non-numeric difference was found in any series.
+
+**Synthetic series**
+
+| Field group | Series | Numeric leaves | Differing leaves | Max abs Δ | Max rel Δ |
+|---|---|---|---|---|---|
+| `parameters.**` | S2 | 8 | 5 | 9.299e-01 | 1.980e-03 |
+| `parameters.**` | S3 | 8 | 3 | 1.548e+00 | 9.657e-03 |
+| `parameters.**` | S4 | 8 | 4 | 1.505e+02 | 5.867e-01 |
+| `parameters.**` | S5 | 8 | 2 | 4.000e-04 | 9.675e-06 |
+| `parameters.**` | S6 | 8 | 3 | 1.218e+00 | 5.740e-03 |
+| `parameters.**` | S8 | 8 | 0 | 0 | 0 |
+| `intensity_graph_data_*.i_calculated[*]` | S2 | 120 | 120 | 1.414e-02 | 2.687e-04 |
+| `intensity_graph_data_*.i_calculated[*]` | S3 | 120 | 64 | 3.268e-02 | 7.514e-04 |
+| `intensity_graph_data_*.i_calculated[*]` | S4 | 120 | 64 | 1.218e+00 | 4.071e-02 |
+| `intensity_graph_data_*.i_calculated[*]` | S5 | 120 | 64 | 2.135e-05 | 5.433e-07 |
+| `intensity_graph_data_*.i_calculated[*]` | S6 | 120 | 64 | 9.358e-03 | 2.892e-04 |
+| `intensity_graph_data_*.i_calculated[*]` | S8 | 120 | 0 | 0 | 0 |
+| `intensity_graph_data_*.regression.*` | S2 | 4 | 4 | 8.698e-03 | 4.443e-01 |
+| `intensity_graph_data_*.regression.*` | S3 | 4 | 2 | 1.813e-03 | 2.085e-02 |
+| `intensity_graph_data_*.regression.*` | S4 | 4 | 4 | 2.439e-01 | 1.437e+00 |
+| `intensity_graph_data_*.regression.*` | S5 | 4 | 2 | 8.256e-06 | 1.605e-04 |
+| `intensity_graph_data_*.regression.*` | S6 | 4 | 2 | 1.353e-03 | 1.091e+00 |
+| `intensity_graph_data_*.regression.*` | S8 | 4 | 0 | 0 | 0 |
+| `mean_relative_errors.*` | S2 | 2 | 2 | 1.087e-03 | 5.675e-04 |
+| `mean_relative_errors.*` | S3 | 2 | 1 | 3.244e-04 | 1.749e-04 |
+| `mean_relative_errors.*` | S4 | 2 | 1 | 3.697e-01 | 1.506e-01 |
+| `mean_relative_errors.*` | S5 | 2 | 1 | 1.364e-06 | 6.368e-07 |
+| `mean_relative_errors.*` | S6 | 2 | 1 | 1.951e-03 | 1.010e-03 |
+| `mean_relative_errors.*` | S8 | 2 | 0 | 0 | 0 |
+| `ns.*` | S2 | 2 | 2 | 4.566e-06 | 4.571e-06 |
+| `ns.*` | S3 | 2 | 1 | 3.451e-06 | 3.454e-06 |
+| `ns.*` | S4 | 2 | 1 | 1.971e-05 | 1.975e-05 |
+| `ns.*` | S5 | 2 | 1 | 2.649e-09 | 2.653e-09 |
+| `ns.*` | S6 | 2 | 1 | 7.070e-06 | 7.079e-06 |
+| `ns.*` | S8 | 2 | 0 | 0 | 0 |
+| `graph_data.**` | S2 | 57 | 3 | 2.842e-14 | 4.968e-16 |
+| `graph_data.**` | S3 | 99 | 0 | 0 | 0 |
+| `graph_data.**` | S4 | 99 | 30 | 2.416e-13 | 4.138e-15 |
+| `graph_data.**` | S5 | 57 | 0 | 0 | 0 |
+| `graph_data.**` | S6 | 60 | 0 | 0 | 0 |
+| `graph_data.**` | S8 | 99 | 0 | 0 | 0 |
+| `**` | S2 | 120 | 15 | 7.105e-14 | 6.152e-16 |
+| `**` | S3 | 120 | 0 | 0 | 0 |
+| `**` | S4 | 121 | 0 | 0 | 0 |
+| `**` | S5 | 120 | 0 | 0 | 0 |
+| `**` | S6 | 120 | 0 | 0 | 0 |
+| `**` | S8 | 121 | 0 | 0 | 0 |
+
+**Maximum per field group (all 21 series)**
+
+| Field group | Numeric leaves | Differing leaves | Max abs Δ | Max rel Δ |
+|---|---|---|---|---|
+| `parameters.**` | 136 | 80 | 1.505e+02 | 5.867e-01 |
+| `intensity_graph_data_*.i_calculated[*]` | 2040 | 1464 | 1.375e+00 | 4.071e-02 |
+| `intensity_graph_data_*.regression.*` | 68 | 52 | 4.213e-01 | 3.482e+00 |
+| `mean_relative_errors.*` | 34 | 24 | 3.697e-01 | 1.506e-01 |
+| `ns.*` | 34 | 24 | 6.826e-04 | 6.896e-04 |
+| `graph_data.**` | 1662 | 121 | 9.948e-13 | 6.131e-15 |
+| `**` | 2056 | 195 | 6.821e-13 | 2.169e-15 |
+
+Reading: the pre-fit maxima are those of T017, so the numeric tolerances of
+`tests/golden/tolerances.json` are unchanged. S4 raises the post-fit maxima of `parameters.**`
+(5.867e-01 against 1.795e-01), `i_calculated` (4.071e-02 against 1.698e-02) and
+`mean_relative_errors.*` (1.506e-01 against 2.919e-02); these groups are `structure` rules, so
+only their recorded `measured_max_*` values and reasons were updated (`measured_at` 2026-10-31).
+No `kind`, `rel_tol` or `abs_tol` changed.
+
 ## Stability verification (T020)
 
 The `characterization` job (exact mode, `CALCULOIDF_COMPARE_MODE=exact`, pinned kernels of R-03)
