@@ -483,5 +483,34 @@ logs.
 - Additional evidence (T029): run 41159855775, job 124414788296, runner GitHub Actions
   1000000282, AMD EPYC 7763 (no AVX-512); the 13 real series passed in exact mode (the job
   failed only on the 8 synthetic series, which had no golden files yet).
+
+## Ruleset and blocking demonstration (T034, T035)
+
+**Ruleset (T034, M-1)**, verified through the GitHub API on 2026-10-31: id 26272232,
+"main protection", enforcement `active`, target `branch`, condition `~DEFAULT_BRANCH` (`main`),
+no bypass actors (`current_user_can_bypass: never`). Effective rules on `main`:
+
+- `deletion` and `non_fast_forward`;
+- `required_status_checks`: `characterization` from GitHub Actions (integration 15368), strict
+  policy (branch must be up to date before merging);
+- `pull_request`: 0 required approvals, allowed merge methods `merge` only (M-1 as amended on
+  2026-10-31).
+
+**Blocking demonstration (T035)**: on a throwaway branch `t035-blocking-demo` from `ab486b5`,
+the `"1h"` coefficient in `src/disaggregation_coef.py` was changed from 0.42 to 0.421 (commit
+`eda2941`) and PR #2 was opened to `main`.
+
+- Check `characterization` on the PR head: run 41207406904, job 124555203942, runner GitHub
+  Actions 1000000286, AMD EPYC 7763 (no AVX-512), exact mode: failure, `17 failed, 105 passed`.
+- The 17 failures are the 11 real series with numeric output and S2–S6 and S8. The 4 series
+  that end in the insufficient-data message (`chuvas_C_01848001_UB`, `chuvas_C_02043032_MA`,
+  S1, S7) have no numeric output and passed.
+- Fields reached (the CI message lists the first 50 differences per series; the groups were
+  read with `scripts/measure_env_diff.py` on the branch, for `chuvas_C_02040022` and S2): the
+  pre-fit `i_real` (group `**`, max relative change 2.381e-03 = 0.001/0.42) and every post-fit
+  group (`parameters`, `i_calculated`, `regression`, `mean_relative_errors`, `ns`) changed;
+  `graph_data` did not, as R-05 predicted.
+- `mergeStateStatus: BLOCKED` (`mergeable: MERGEABLE`, i.e. no conflict; the block came from
+  the ruleset). PR #2 was closed without merge and the branch was deleted.
 - No run differed from the golden files; neither the golden files nor the tolerances were
   changed.
