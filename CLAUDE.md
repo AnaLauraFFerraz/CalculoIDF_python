@@ -8,16 +8,24 @@ This repository is the project's reference repository (ADR 0002): it holds the S
 
 - Python 3.10 in production (1st-gen Cloud Run functions runtime). pandas 2.0.1, numpy 1.24.3, scipy 1.10.1, scikit-learn 1.3.0, Flask (request object of the function), google-cloud-storage — pinned in `requirements.txt`, which also lists unused packages (D-11).
 - Local environment with **uv**: `.venv` on Python 3.10. pandas 2.0.1 has wheels only up to Python 3.11.
-- No `pyproject.toml`, no tests, no linter and no CI yet.
+- Tests: pytest 8.3.5, pinned in `requirements-test.txt` (test-only, separate from `requirements.txt`); configuration in `pytest.ini`. The characterization suite (spec 001) compares the output of `main.main` for 13 real and 8 synthetic series with golden files in `tests/golden/`.
+- CI: GitHub Actions workflow `.github/workflows/characterization.yml` (Linux, Python 3.10, the pins, pinned CPU kernels). Job `characterization` runs the suite in exact mode on every push and is a required check on `main`; job `generate-golden` regenerates golden files as an artifact (never commits). No deployment pipeline.
+- No `pyproject.toml` and no linter.
 
 ## Commands
 
 ```powershell
 uv venv --python 3.10 .venv        # local environment matching production
-uv pip install -r requirements.txt
+uv pip install -r requirements.txt -r requirements-test.txt
+
+.venv\Scripts\python -m pytest tests/unit   # unit tests of the comparator and of update_golden.py
+.venv\Scripts\python -m pytest              # full suite: unit tests + 21 golden-file series
 ```
 
-There are no test, lint or run scripts yet; spec 001 adds the test suite.
+- **Compare mode.** Selected by the environment fingerprint: `exact` (bit-for-bit) when it matches the reference environment, `tolerant` otherwise (Windows: numeric tolerances for pre-fit fields, structure only for post-fit fields; `tests/golden/tolerances.json`, ADR 0003). Force it with `$env:CALCULOIDF_COMPARE_MODE = "exact"` or `"tolerant"`.
+- **`scripts/update_golden.py --reason "<text>" [--series ID ...]`** regenerates golden files and appends to `tests/golden/CHANGELOG.md`. Without a reason it exits 2; outside the reference environment it exits 3 unless `--allow-non-reference --out <scratch dir>` is given, which writes only to that directory. Golden files are generated in CI: push a commit whose message contains `[regenerate-golden]` with the reason as its body, or, once the workflow is on `main`, `gh workflow run characterization.yml --ref <branch> -f reason="<text>"`; then download the `golden-<run id>` artifact, review and commit it.
+- **`scripts/measure_env_diff.py [--series ID ...] [--out report.md]`** reports the per-field-group differences between the current environment and the golden files, without tolerances; writes nothing under `tests/golden/`.
+- **`scripts/make_synthetic_fixtures.py --out <dir>`** generated the synthetic CSVs `tests/fixtures/synthetic/S1–S8` once. **Do not regenerate them**: the committed bytes are golden-file inputs, and any change to them fails the suite (SHA-256 check) until the golden files are regenerated.
 
 ## Architecture
 
