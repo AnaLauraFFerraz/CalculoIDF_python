@@ -697,3 +697,24 @@ decided each one.
 | F3 | unrequested | LOW | plan: Project Structure | `tests/unit/test_tolerances_file.py`, `tests/unit/test_bootstrap.py` and the "Log runner CPU" workflow step are not in the plan's structure | Accepted, no plan change: `test_bootstrap.py` covers the kernel and thread variables pinned by R-03 (`bootstrap.py`, T004); `test_tolerances_file.py` checks the tolerance file filled by T018 (rule kinds, mandatory reasons, recorded measurement); the CPU log step provides the runner CPU evidence recorded by T020 |
 
 T025 (manual, after the merge) remains open by design and is not a convergence finding.
+
+## Post-merge regeneration demonstration (T025)
+
+Run on 2026-10-31, after PR #1 was merged into `main` with a merge commit (`406e666`; the
+`characterization` check on that commit concluded `success`).
+
+- Command: `gh workflow run characterization.yml --ref main -f reason="T025: demonstrate a later
+  regeneration" -f series="chuvas_C_01944009_PL"`.
+- Run 41250807478 (`workflow_dispatch`, head `406e666`): job `generate-golden` (124683736944,
+  runner GitHub Actions 1000000291) `success`; job `characterization` skipped, as designed for
+  `workflow_dispatch`. Artifact `golden-41250807478` (id 13060104669) uploaded.
+- Script output: `No golden file changed; no changelog entry added.`
+- The downloaded artifact is byte-identical to `tests/golden/` on `main`:
+  `real/chuvas_C_01944009_PL.json` unchanged and `CHANGELOG.md` without a new entry. Nothing was
+  committed.
+- Deviation from the task text ("check the changelog entry"): with unchanged code the
+  regeneration changes no golden file, so by contract (`contracts/update-golden-cli.md`) no
+  changelog entry is written. The run demonstrates the dispatch path, the `--series` filter and
+  the unchanged-file rule in the reference environment; the entry-writing path is shown by the
+  CI generations of T014 and T029 (the two entries in `tests/golden/CHANGELOG.md`) and by the
+  unit tests of T024.
