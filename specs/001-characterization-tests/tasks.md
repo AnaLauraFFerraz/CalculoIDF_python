@@ -272,8 +272,10 @@ carry a marker pointing to the backlog item.
   ends in September; S7 Oct/1990–Sep/2000 (10 complete years, mandatory); S8 a month **inside
   the consisted period with consisted `Maxima` empty or 0 and earlier than the first raw
   record**, so `Maxima` is NaN when `fillna(0, inplace=True)` runs (`process_data.py:67`), with
-  ≥ 10 complete water years reachable afterwards. Read `src/main.py` and `src/process_data.py`
-  first to build inputs the code actually accepts.
+  ≥ 10 complete water years reachable afterwards. Amended 2026-10-30 (R-06): the gap is a whole
+  water year (Oct/1966–Sep/1967), because a single month is neutralized by the per-year maximum
+  and could not show D-13; expected: that year listed in `empty_years`. Read `src/main.py` and
+  `src/process_data.py` first to build inputs the code actually accepts.
 - [ ] T027 [US3] Run the generator, commit the CSVs (check `git check-attr text` reports
   `unset` for `*.csv`, so bytes are preserved), and create
   `tests/fixtures/synthetic/README.md`: what each fixture covers and its backlog item, plus a

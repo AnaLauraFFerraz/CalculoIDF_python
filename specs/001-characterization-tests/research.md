@@ -205,7 +205,7 @@ and the code in `src/` as of `255ac0e`.
   | S5 | starts in October (ends mid-year) | current trimming, one complete year dropped | known defect D-02 / C-02 |
   | S6 | ends in September (starts mid-year) | current trimming, one complete year dropped | known defect D-02 / C-02 |
   | S7 | Oct/1990–Sep/2000 (mandatory case) | 8 years → insufficient-data string | known defect D-02 / C-02 |
-  | S8 | a month missing in both consistency levels | current `fillna(0)` behavior for that month | suspected (D-13; changes under pandas 3) |
+  | S8 | a month missing in both consistency levels (a whole water year, Oct/1966–Sep/1967) | that water year listed in `empty_years`, through the `fillna(0)` path | suspected (D-13; changes under pandas 3) |
 
   **How S8 must be built.** `resample_data` fills with 0 every month missing *inside each
   level's own date range*, so a gap in the middle of both levels never reaches
@@ -221,6 +221,16 @@ and the code in `src/` as of `255ac0e`.
   Under pandas 2.0.1 that line turns the NaN into 0; under pandas 3 it is a no-op (D-13). The
   rest of S8 (≥ 10 complete water years, both levels overlapping afterwards) must let the
   pipeline reach the fit, so the golden file captures the effect on the full output.
+
+  **A whole water year, not a single month** (amended 2026-10-30, T026). A single month with
+  these properties is neutralized: the per-year maximum (`add_water_year`) skips NaN, so the
+  output is the same with or without the `fillna` and the golden file could not show D-13
+  (verified in memory by replacing `merge_and_fill_data` with a copy without the `fillna`). S8
+  therefore leaves the whole water year Oct/1966–Sep/1967 empty in the consisted level (from
+  Jan/1965), before the first raw record (Mar/1968). Expected today: through the `fillna(0)`
+  path the year's maximum is 0 and the year is listed in `empty_years`. Without the `fillna`
+  the pipeline raises `ValueError: array must not contain infs or NaNs` (same in-memory check).
+  FR-007 is still covered: every month of that year is missing in both consistency levels.
 
   The "expected" column is the hypothesis from the spec and the knowledge base; the golden file
   records what the code actually returns. If it differs from the hypothesis, the difference is
