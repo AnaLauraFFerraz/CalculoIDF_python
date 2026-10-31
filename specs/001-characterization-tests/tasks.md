@@ -283,7 +283,7 @@ carry a marker pointing to the backlog item.
 - [X] T028 [US3] Add the synthetic markers to the marker dict in `compare.py`: S5, S6, S7 →
   `{status: "known-defect", debt: "D-02", fix: "C-02"}` with a one-line `note` each; S8 →
   `{status: "suspected", debt: "D-13", fix: null, note: "pandas 3 Copy-on-Write turns
-  fillna(inplace=True) into a no-op; handled in the phase-2 library upgrade"}` (FR-008).
+  fillna(inplace=True) into a no-op, so the empty water year reaches the fit as NaN"}` (FR-008).
 - [X] T029 [MANUAL] [US3] Push a `[regenerate-golden]` commit (body: `edge cases: synthetic
   series S1-S8`). The push trigger has no `--series`, so the job generates **every** series;
   thanks to T021 the 13 real golden files stay byte-identical and only S1–S8 are written.
@@ -357,7 +357,7 @@ be merged.
   absence of tests/CI. Describe only what exists.
 - [X] T040 Run the quickstart scenarios 1–7 in `quickstart.md` and note any deviation in
   `research.md`.
-- [ ] T041 After implementation, run `/speckit-converge` to catch unbuilt work.
+- [X] T041 After implementation, run `/speckit-converge` to catch unbuilt work.
 
 ---
 
@@ -411,4 +411,4 @@ logical group, Conventional Commits in English, no `Co-Authored-By`.
 ## Phase 8: Convergence
 
 - [X] T042 Re-run `scripts/measure_env_diff.py` over all 21 series on Windows and update the measurement record (`measured_at`, every rule's `measured_max_abs` / `measured_max_rel` and the maxima quoted in the structure reasons of `tests/golden/tolerances.json`; a 21-series table in `research.md`; D-01) without changing any `kind`, `rel_tol` or `abs_tol`; stop and report if a pre-fit maximum exceeds T017 per FR-002 (partial)
-- [ ] T043 Align the text of T028 with the S8 marker note as implemented in `tests/characterization/compare.py` per T028 (partial)
+- [X] T043 Align the text of T028 with the S8 marker note as implemented in `tests/characterization/compare.py` per T028 (partial)

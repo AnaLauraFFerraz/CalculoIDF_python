@@ -683,3 +683,17 @@ groups: S4 exceeds the T017 maxima. These groups are `structure` rules (ADR 0003
 outcome does not change; the pre-fit groups, which carry the numeric tolerances, are not moved.
 The measurement record (`measured_max_*` in `tests/golden/tolerances.json`) covered the 13 real
 series only; it is updated over all 21 series by T042.
+
+## Convergence (T041)
+
+`/speckit-converge` run on 2026-10-31 from `e3deba1` (T040 staged). No hooks registered, no
+constitution violation, no `missing` or `contradicts` finding. Three findings; the maintainer
+decided each one.
+
+| ID | Gap type | Severity | Source | Finding | Resolution |
+|---|---|---|---|---|---|
+| F1 | partial | MEDIUM | FR-002, T018, T031 | The measurement record in `tests/golden/tolerances.json` covered the 13 real series only; with the 8 synthetic series, S4 exceeds the T017 maxima of three post-fit (`structure`) groups | Fixed by T042: re-measured over all 21 series; measurement fields and the 21-series table updated, no `kind`, `rel_tol` or `abs_tol` changed ("Measurement over all 21 series (T042)") |
+| F2 | partial | LOW | T028, FR-008 | The S8 marker note in `tests/characterization/compare.py` differs from the text of T028 | The note was adjusted on the maintainer's instruction; T043 aligned the T028 text with it. The marker and `S8.json` are unchanged |
+| F3 | unrequested | LOW | plan: Project Structure | `tests/unit/test_tolerances_file.py`, `tests/unit/test_bootstrap.py` and the "Log runner CPU" workflow step are not in the plan's structure | Accepted, no plan change: `test_bootstrap.py` covers the kernel and thread variables pinned by R-03 (`bootstrap.py`, T004); `test_tolerances_file.py` checks the tolerance file filled by T018 (rule kinds, mandatory reasons, recorded measurement); the CPU log step provides the runner CPU evidence recorded by T020 |
+
+T025 (manual, after the merge) remains open by design and is not a convergence finding.
