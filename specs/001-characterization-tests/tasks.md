@@ -264,7 +264,7 @@ with defects marked.
 **Independent Test**: each synthetic series has a golden file; the cases for D-02 and D-13
 carry a marker pointing to the backlog item.
 
-- [ ] T026 [US3] Create `scripts/make_synthetic_fixtures.py` (`--out tests/fixtures/synthetic`,
+- [X] T026 [US3] Create `scripts/make_synthetic_fixtures.py` (`--out tests/fixtures/synthetic`,
   fixed seed, deterministic): writes `S1`–`S8` in Hidroweb format (ISO-8859-1, `;` separator, `,`
   decimal mark, 12 header lines, columns including `NivelConsistencia`, `Data`, `Maxima`) so that
   `main.load_data` reads them. Cases (R-06): S1 < 10 complete water years; S2 10–29 years; S3 no
@@ -276,7 +276,7 @@ carry a marker pointing to the backlog item.
   water year (Oct/1966–Sep/1967), because a single month is neutralized by the per-year maximum
   and could not show D-13; expected: that year listed in `empty_years`. Read `src/main.py` and
   `src/process_data.py` first to build inputs the code actually accepts.
-- [ ] T027 [US3] Run the generator, commit the CSVs (check `git check-attr text` reports
+- [X] T027 [US3] Run the generator, commit the CSVs (check `git check-attr text` reports
   `unset` for `*.csv`, so bytes are preserved), and create
   `tests/fixtures/synthetic/README.md`: what each fixture covers and its backlog item, plus a
   note that C-01 (D-01) affects every fitted result and therefore has no per-station marker.
