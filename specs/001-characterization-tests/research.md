@@ -718,3 +718,38 @@ Run on 2026-10-31, after PR #1 was merged into `main` with a merge commit (`406e
   the unchanged-file rule in the reference environment; the entry-writing path is shown by the
   CI generations of T014 and T029 (the two entries in `tests/golden/CHANGELOG.md`) and by the
   unit tests of T024.
+
+### Dispatch-skip check of the required status (2026-10-31)
+
+- **Hypothesis.** After the T025 dispatch, commit `406e666` carries two `characterization` check
+  runs: `success` (push) and `skipped` (the dispatch, because the job has
+  `if: github.event_name == 'push'`). GitHub documents that a skipped job reports "Success" and
+  does not block merging even when it is required, so a `workflow_dispatch` run might satisfy the
+  required `characterization` check on a head whose push run failed.
+- **Experiment.** Throwaway branch `t044-dispatch-skip-demo` from `406e666`, commit `b0826a7`
+  changing the `"2h"` disaggregation coefficient from 0.52 to 0.521, PR #4 to `main`.
+  - Push run 41251156153: `characterization` `failure` (`17 failed, 105 passed`);
+    `mergeStateStatus: BLOCKED`.
+  - Dispatch run 41251261514 (`--ref t044-dispatch-skip-demo`): `generate-golden` `success`,
+    `characterization` `skipped`.
+  - Check runs on head `b0826a7` after both runs:
+
+    | Name | Conclusion | Check run | Run | Event |
+    |---|---|---|---|---|
+    | characterization | failure | 124684763480 | 41251156153 | push |
+    | generate-golden | skipped | 124684764856 | 41251156153 | push |
+    | characterization | skipped | 124685082067 | 41251261514 | workflow_dispatch |
+    | generate-golden | success | 124685080890 | 41251261514 | workflow_dispatch |
+
+- **Result.** `mergeStateStatus` stayed `BLOCKED` (`mergeable: MERGEABLE`, no conflict). The PR's
+  `statusCheckRollup` (GraphQL) had state `FAILURE` and listed only the two push-run checks
+  (`characterization` `FAILURE`, `isRequired: true`; `generate-golden` `SKIPPED`);
+  `gh pr checks 4` reported `characterization fail`. The hole was not confirmed.
+- **Probable mechanism (inference, not verified in GitHub documentation).** The check suite of a
+  `workflow_dispatch` run is not associated with the pull request, so its skipped
+  `characterization` check run does not enter the PR's required-check evaluation.
+- **Scope.** Only the order "push run fails, then dispatch" was exercised. A dispatch before the
+  push run completes, or while it is pending, was not tested.
+- **Cleanup.** PR #4 closed without merge, with a comment summarizing the result; the branch was
+  deleted remotely and locally. `git diff tcc-2023 -- src/ requirements.txt` is empty. The
+  workflow was not changed.
